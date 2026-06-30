@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>ADONIS · Plan Canicule</title>
+
+<!-- PWA : installation sur l'écran d'accueil -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F3B57">
+<meta name="background-color" content="#F6F2E9">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plan Canicule">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1F3B57;
+    --navy-deep:#152A3F;
+    --sand:#F6F2E9;
+    --sand-deep:#EDE6D6;
+    --card:#FFFFFF;
+    --ink:#20262B;
+    --ink-soft:#5B6770;
+    --line:#E3DCC9;
+    --v1:#3C8C5B; --v1-soft:#E3F0E6;
+    --v2:#DDB02B; --v2-soft:#FBF1D9;
+    --v3:#D9622B; --v3-soft:#FBE9DD;
+    --v4:#C2362B; --v4-soft:#F8DEDB;
+    --radius:18px;
+    --radius-sm:12px;
+    --shadow: 0 1px 2px rgba(31,59,87,.06), 0 8px 24px -8px rgba(31,59,87,.14);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:'Inter',-apple-system,Segoe UI,sans-serif;
+    background:var(--sand);
+    color:var(--ink);
+    display:flex; justify-content:center;
+    min-height:100vh;
+  }
+  .display{font-family:'Archivo','Inter',sans-serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- App shell ---------- */
+  #app{
+    width:100%; max-width:480px;
+    min-height:100vh;
+    background:var(--sand);
+    display:flex; flex-direction:column;
+    position:relative;
+    box-shadow: var(--shadow);
+  }
+  header.appbar{
+    background:var(--navy);
+    color:#fff;
+    padding:18px 18px 16px;
+    position:sticky; top:0; z-index:30;
+    box-shadow:0 6px 16px -8px rgba(0,0,0,.35);
+  }
+  header.appbar .row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  header.appbar .brand{display:flex; flex-direction:column; line-height:1.05;}
+  header.appbar .brand b{font-family:'Archivo'; font-weight:800; font-size:18px; letter-spacing:.02em;}
+  header.appbar .brand span{font-size:11px; color:#C9D6E2; letter-spacing:.06em; text-transform:uppercase;}
+  .level-pill{
+    display:flex; align-items:center; gap:6px;
+    padding:6px 10px 6px 8px; border-radius:999px;
+    font-size:12px; font-weight:700; color:#fff;
+    border:1px solid rgba(255,255,255,.25);
+    white-space:nowrap;
+  }
+  .dot{width:8px; height:8px; border-radius:50%; flex:none;}
+
+  main{flex:1; overflow-y:auto; padding:16px 16px 110px; -webkit-overflow-scrolling:touch;}
+  .view{display:none; animation:fade .22s ease;}
+  .view.active{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- Bottom nav ---------- */
+  nav.tabbar{
+    position:sticky; bottom:0; z-index:30;
+    display:grid; grid-template-columns:repeat(5,1fr);
+    background:#fff;
+    border-top:1px solid var(--line);
+    padding:6px 4px calc(8px + env(safe-area-inset-bottom));
+  }
+  nav.tabbar button{
+    background:none; border:none; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    color:var(--ink-soft); font-size:10.5px; font-weight:600;
+    padding:6px 2px; border-radius:10px;
+    font-family:'Inter';
+  }
+  nav.tabbar button.alert-tab{color:var(--v4);}
+  nav.tabbar button.active{color:var(--navy); background:var(--sand-deep);}
+  nav.tabbar button.active.alert-tab{color:var(--v4);}
+  nav.tabbar svg{width:21px; height:21px;}
+
+  /* ---------- Generic components ---------- */
+  .card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:16px;
+    box-shadow:var(--shadow); margin-bottom:14px;
+  }
+  h1.page-title{font-family:'Archivo'; font-weight:800; font-size:21px; color:var(--navy); margin:4px 0 4px;}
+  p.page-sub{color:var(--ink-soft); font-size:13.5px; margin:0 0 16px; line-height:1.45;}
+  h2.sec-title{font-family:'Archivo'; font-weight:700; font-size:14.5px; color:var(--navy); margin:0 0 10px; display:flex; align-items:center; gap:8px;}
+  .eyebrow{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--v3);}
+
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    border:none; cursor:pointer; border-radius:var(--radius-sm);
+    font-weight:700; font-size:14px; font-family:'Inter'; padding:13px 16px;
+    width:100%;
+  }
+  .btn-primary{background:var(--navy); color:#fff;}
+  .btn-alert{background:var(--v4); color:#fff;}
+  .btn-ghost{background:var(--sand-deep); color:var(--navy);}
+  .btn-outline{background:#fff; color:var(--navy); border:1.5px solid var(--line);}
+  .btn-sm{padding:9px 12px; font-size:13px; width:auto;}
+  .btn[disabled]{opacity:.45; pointer-events:none;}
+
+  .pill-row{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; margin-bottom:14px; scrollbar-width:none;}
+  .pill-row::-webkit-scrollbar{display:none;}
+  .pill{
+    flex:none; padding:9px 14px; border-radius:999px; font-size:12.5px; font-weight:700;
+    background:#fff; border:1.5px solid var(--line); color:var(--ink-soft); cursor:pointer;
+  }
+  .pill.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+  textarea,input[type=text],input[type=number],select{
+    width:100%; border:1.5px solid var(--line); border-radius:10px; padding:10px 12px;
+    font-family:'Inter'; font-size:14px; color:var(--ink); background:#fff;
+  }
+  textarea{resize:vertical; min-height:54px;}
+  label.field-label{font-size:12px; font-weight:700; color:var(--ink-soft); display:block; margin:0 0 5px;}
+  .field{margin-bottom:12px;}
+
+  .seg{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+  .seg button{
+    border:1.5px solid var(--line); background:#fff; border-radius:10px;
+    padding:9px 4px; font-size:11.5px; font-weight:700; color:var(--ink-soft); cursor:pointer; line-height:1.25;
+  }
+  .seg button.sel-0.active{background:var(--v1-soft); border-color:var(--v1); color:#1f5c39;}
+  .seg button.sel-1.active{background:var(--v2-soft); border-color:var(--v2); color:#7a5c10;}
+  .seg button.sel-2.active{background:var(--v4-soft); border-color:var(--v4); color:var(--v4);}
+
+  .badge{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:700;}
+  .row-between{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .divider{height:1px; background:var(--line); margin:12px 0;}
+  .empty{text-align:center; color:var(--ink-soft); font-size:13px; padding:18px 8px;}
+  .empty b{display:block; color:var(--ink); font-size:14px; margin-bottom:4px;}
+
+  .check-row{display:flex; align-items:flex-start; gap:11px; padding:11px 2px; border-bottom:1px solid var(--line);}
+  .check-row:last-child{border-bottom:none;}
+  .checkbox{
+    width:22px; height:22px; border-radius:7px; border:2px solid var(--line); flex:none; margin-top:1px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; background:#fff;
+  }
+  .checkbox.checked{background:var(--v1); border-color:var(--v1);}
+  .checkbox svg{width:13px; height:13px; stroke:#fff; display:none;}
+  .checkbox.checked svg{display:block;}
+  .check-row span{font-size:14px; line-height:1.4; padding-top:1px;}
+  .check-row.done span{color:var(--ink-soft); text-decoration:line-through;}
+
+  table.mini{width:100%; border-collapse:collapse; font-size:12.5px;}
+  table.mini th{text-align:left; color:#fff; background:var(--navy); padding:8px 8px; font-size:11px; font-weight:700;}
+  table.mini td{padding:8px 8px; border-bottom:1px solid var(--line);}
+  table.mini tr:nth-child(even) td{background:var(--sand-deep);}
+  .icon-btn{background:none; border:none; cursor:pointer; color:var(--ink-soft); padding:4px;}
+  .icon-btn:active{color:var(--v4);}
+
+  .step-card{border-left:5px solid var(--navy); background:var(--sand-deep); border-radius:12px; padding:13px 14px; margin-bottom:0;}
+  .step-card.danger{border-left-color:var(--v4); background:var(--v4-soft);}
+  .step-card.warn{border-left-color:var(--v3); background:var(--v3-soft);}
+  .step-card b{color:var(--navy); font-family:'Archivo'; font-size:12.5px; display:block; margin-bottom:3px; letter-spacing:.03em;}
+  .step-card.danger b{color:var(--v4);}
+  .step-card.warn b{color:var(--v3);}
+  .step-card p{margin:0; font-size:13.5px; line-height:1.45;}
+  .arrow{text-align:center; color:var(--v3); font-size:16px; padding:4px 0;}
+
+  details.acc{border:1px solid var(--line); border-radius:12px; margin-bottom:10px; background:#fff; overflow:hidden;}
+  details.acc summary{list-style:none; cursor:pointer; padding:13px 14px; font-weight:700; font-size:13.5px; color:var(--navy); display:flex; align-items:center; justify-content:between; gap:10px;}
+  details.acc summary::-webkit-details-marker{display:none;}
+  details.acc summary::after{content:'+'; margin-left:auto; font-size:18px; color:var(--ink-soft); font-weight:400;}
+  details.acc[open] summary::after{content:'–';}
+  details.acc .acc-body{padding:0 14px 14px; font-size:13.5px; color:var(--ink); line-height:1.55;}
+  details.acc .acc-body ul{margin:6px 0; padding-left:18px;}
+  details.acc .acc-body li{margin-bottom:5px;}
+
+  .msg-card{border:1px dashed var(--line); border-radius:12px; padding:12px 13px; background:var(--sand-deep); font-size:13px; line-height:1.5; color:var(--ink); margin-bottom:10px;}
+  .msg-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .msg-head b{font-size:12.5px; color:var(--navy);}
+  .copy-btn{display:flex; align-items:center; gap:5px; background:#fff; border:1.5px solid var(--line); color:var(--navy); font-size:11.5px; font-weight:700; padding:6px 10px; border-radius:999px; cursor:pointer;}
+  .copy-btn svg{width:12px; height:12px;}
+  .toast{
+    position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(10px);
+    background:var(--navy); color:#fff; padding:10px 18px; border-radius:999px; font-size:13px; font-weight:600;
+    box-shadow:var(--shadow); opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; z-index:90; white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* ---------- Gauge ---------- */
+  .gauge-wrap{display:flex; flex-direction:column; align-items:center; padding:6px 0 2px;}
+  .gauge-readout{display:flex; flex-direction:column; align-items:center; margin-top:-58px;}
+  .gauge-readout .lvl{font-family:'Archivo'; font-weight:800; font-size:34px; line-height:1;}
+  .gauge-readout .lbl{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-top:2px; text-align:center; max-width:220px;}
+  .needle{transition:transform .5s cubic-bezier(.34,1.56,.64,1);}
+  .level-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:18px;}
+  .level-opt{border-radius:12px; padding:10px 4px; text-align:center; cursor:pointer; border:1.5px solid var(--line); background:#fff;}
+  .level-opt b{display:block; font-family:'Archivo'; font-size:18px; font-weight:800;}
+  .level-opt span{display:block; font-size:9.5px; font-weight:700; color:var(--ink-soft); margin-top:1px; line-height:1.2;}
+  .level-opt.sel{border-width:2px;}
+
+  .score-ring{
+    width:96px; height:96px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    flex:none; border:6px solid var(--line); background:#fff;
+  }
+  .score-ring .n{font-family:'IBM Plex Mono'; font-weight:600; font-size:26px;}
+  .score-ring .d{font-size:10px; color:var(--ink-soft); margin-top:-2px;}
+
+  .qa-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .qa{
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 12px;
+    display:flex; flex-direction:column; gap:8px; cursor:pointer; text-align:left;
+  }
+  .qa svg{width:20px; height:20px; color:var(--navy);}
+  .qa b{font-size:13px; font-family:'Archivo'; color:var(--ink); line-height:1.25;}
+  .qa.danger{background:var(--v4-soft); border-color:#eac4bf;}
+  .qa.danger svg{color:var(--v4);}
+  .qa.danger b{color:var(--v4);}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <header class="appbar">
+    <div class="row">
+      <div class="brand"><b>ADONIS</b><span>Plan Canicule</span></div>
+      <div class="level-pill" id="headerPill" style="background:rgba(255,255,255,.12)">
+        <span class="dot" id="headerDot"></span><span id="headerPillText">Niveau —</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main"></main>
+
+  <div class="toast" id="toast"></div>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="accueil" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      Accueil
+    </button>
+    <button data-tab="ivt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><circle cx="12" cy="16" r="5"/><path d="M9 16h6"/></svg>
+      IVT
+    </button>
+    <button data-tab="fiches">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>
+      Fiches
+    </button>
+    <button data-tab="alerte" class="alert-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.9L2.7 17a2 2 0 001.7 3h15.2a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 17h.01"/></svg>
+      Alerte
+    </button>
+    <button data-tab="plus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>
+      Référentiel
+    </button>
+  </nav>
+</div>
+
+<script>
+/* =====================================================================
+   ADONIS · Plan Canicule — Application mobile
+   ===================================================================== */
+
+const LEVEL_COLOR = { 1:'#3C8C5B', 2:'#DDB02B', 3:'#D9622B', 4:'#C2362B' };
+const LEVEL_SOFT  = { 1:'#E3F0E6', 2:'#FBF1D9', 3:'#FBE9DD', 4:'#F8DEDB' };
+const LEVEL_NAME  = { 1:'Veille saisonnière', 2:'Avertissement chaleur', 3:'Alerte canicule', 4:'Mobilisation maximale' };
+const LEVEL_SHORT = { 1:'Veille', 2:'Avertissement', 3:'Alerte', 4:'Mobil. max.' };
+const LEVEL_DESC  = {
+  1:'Vigilance standard. Hydratation rappelée à chaque visite.',
+  2:'Vérifiez la grille IVT des bénéficiaires fragiles. Contrôle systématique de l’hydratation.',
+  3:'Horaires adaptés aux heures fraîches. Surveillance renforcée et compte rendu obligatoire au coordinateur après chaque visite.',
+  4:'Priorisez les bénéficiaires à IVT élevé. Passages biquotidiens si nécessaire. Point quotidien avec la cellule de crise.',
+};
+
+const CRITERIA = [
+  { key:'age',        label:'Âge',                  options:['Moins de 65 ans','65 à 80 ans','Plus de 80 ans'] },
+  { key:'autonomie',  label:'Autonomie',             options:['Autonome','Aide partielle','Dépendance importante'] },
+  { key:'pathologie', label:'Pathologie à risque',   options:['Aucune','Une identifiée','Plusieurs / traitement à risque'] },
+  { key:'isolement',  label:'Isolement',             options:['Entourage quotidien','Entourage occasionnel','Isolement complet'] },
+  { key:'logement',   label:'Logement',              options:['Climatisé / ventilé','Ventilation correcte','Mal ventilé / exposé'] },
+];
+
+const CHECKLIST_ITEMS = [
+  "Logement aéré le matin puis fermé / volets clos aux heures chaudes",
+  "Boisson proposée et accessible à portée de main",
+  "Température ambiante de la pièce de vie vérifiée si possible",
+  "Vêtements légers, absence de surcouverture",
+  "Aucun signe de confusion, malaise ou propos incohérents observé",
+  "Score IVT du bénéficiaire connu et pris en compte",
+  "Fiche hydratation et fiche de surveillance renseignées",
+];
+
+const SURVEILLANCE_INDICATORS = [
+  { key:'conscience',  label:'État de conscience',  opts:['Orienté, répond normalement','Ralenti, fatigue inhabituelle','Confusion, propos incohérents'] },
+  { key:'temperature', label:'Température ressentie', opts:['Normale','Chaude au toucher','Très chaude, peau sèche'] },
+  { key:'hydratation', label:'Hydratation',          opts:['Boit normalement','Boit peu, bouche sèche','Refuse de boire'] },
+  { key:'mobilite',    label:'Comportement / mobilité', opts:['Habituel','Vertiges, faiblesse','Chute, convulsions'] },
+];
+
+const AUDIT_QUESTIONS = [
+  "La cartographie des bénéficiaires à risque est-elle à jour ?",
+  "La grille IVT est-elle renseignée pour tous les bénéficiaires à risque ?",
+  "L'ensemble des intervenants a-t-il suivi la formation annuelle ?",
+  "Le logigramme décisionnel est-il affiché et connu des équipes ?",
+  "Les fiches terrain sont-elles correctement renseignées et archivées ?",
+  "Les indicateurs qualité sont-ils suivis et analysés ?",
+  "La cellule de crise s'est-elle réunie conformément aux modalités prévues ?",
+];
+
+/* ---------------------------------------------------------------- */
+/* Stockage local (persistant sur l'appareil, fonctionne hors ligne) */
+/* ---------------------------------------------------------------- */
+function sGet(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v !== null ? JSON.parse(v) : fallback;
+  } catch (e) { return fallback; }
+}
+function sSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); }
+  catch (e) { console.error('Échec de l’enregistrement local', key, e); }
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+/* ---------------------------------------------------------------- */
+/* Application state                                                */
+/* ---------------------------------------------------------------- */
+const state = {
+  tab: 'accueil',
+  level: 1,
+  ivtList: [],
+  ivtForm: { editingId:null, name:'', age:0, autonomie:0, pathologie:0, isolement:0, logement:0 },
+  fiches: { date: todayStr(), checklist:{}, hydratation:[], surveillance:{}, transmission:[] },
+  fichesTab: 'checklist',
+  contacts: { coordinateur:'', astreinte:'', medecin:'' },
+  audit: {},
+};
+
+let booted = false;
+
+async function loadState() {
+  state.level   = await sGet('vigilance-level', 1);
+  state.ivtList = await sGet('ivt-list', []);
+  const fiches  = await sGet('fiches-data', null);
+  if (fiches && fiches.date === todayStr()) {
+    state.fiches = fiches;
+  } else {
+    state.fiches = { date: todayStr(), checklist:{}, hydratation:[], surveillance:{}, transmission:[] };
+    await sSet('fiches-data', state.fiches);
+  }
+  state.contacts = await sGet('contacts', { coordinateur:'', astreinte:'', medecin:'' });
+  state.audit    = await sGet('audit-checklist', {});
+  booted = true;
+}
+
+/* ---------------------------------------------------------------- */
+/* Utilities                                                         */
+/* ---------------------------------------------------------------- */
+function uid() { return Math.random().toString(36).slice(2,9); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function ivtScore(item) {
+  return (item.age||0)+(item.autonomie||0)+(item.pathologie||0)+(item.isolement||0)+(item.logement||0);
+}
+function ivtInterpret(score) {
+  if (score <= 2) return { label:'Vulnérabilité faible',   color:LEVEL_COLOR[1], freq:'Visite habituelle, vigilance standard.' };
+  if (score <= 5) return { label:'Vulnérabilité modérée',  color:LEVEL_COLOR[2], freq:'Contrôle de l’hydratation à chaque passage.' };
+  if (score <= 8) return { label:'Vulnérabilité élevée',   color:LEVEL_COLOR[3], freq:'Passage renforcé en niveau 3-4, contact médecin si doute.' };
+  return            { label:'Vulnérabilité majeure',       color:LEVEL_COLOR[4], freq:'Surveillance rapprochée quotidienne dès le niveau 2.' };
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(()=>toast('Message copié')).catch(()=>toast('Copie indisponible'));
+  } else {
+    toast('Copie indisponible sur cet appareil');
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Header                                                            */
+/* ---------------------------------------------------------------- */
+function renderHeader() {
+  document.getElementById('headerDot').style.background = LEVEL_COLOR[state.level];
+  document.getElementById('headerPillText').textContent = `Niveau ${state.level} · ${LEVEL_SHORT[state.level]}`;
+}
+
+/* ---------------------------------------------------------------- */
+/* Gauge (signature element)                                         */
+/* ---------------------------------------------------------------- */
+function describeArc(cx, cy, r, startDeg, endDeg) {
+  const toXY = (deg) => {
+    const rad = (deg-90) * Math.PI/180;
+    return [cx + r*Math.cos(rad), cy + r*Math.sin(rad)];
+  };
+  const [x1,y1] = toXY(startDeg);
+  const [x2,y2] = toXY(endDeg);
+  const large = (endDeg-startDeg) > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+}
+
+function gaugeSVG() {
+  const cx=130, cy=120, r=98;
+  const bounds = [-90,-45,0,45,90];
+  let arcs = '';
+  for (let i=0;i<4;i++) {
+    arcs += `<path d="${describeArc(cx,cy,r,bounds[i],bounds[i+1])}" stroke="${LEVEL_COLOR[i+1]}" stroke-width="16" fill="none" stroke-linecap="round" opacity="${state.level===i+1?1:0.32}"/>`;
+  }
+  const centers = { 1:-67.5, 2:-22.5, 3:22.5, 4:67.5 };
+  const needleAngle = centers[state.level];
+  // ticks
+  let ticks='';
+  [1,2,3,4].forEach(l=>{
+    const a=(centers[l]-90)*Math.PI/180;
+    const x1=cx+ (r-13)*Math.cos(a), y1=cy+(r-13)*Math.sin(a);
+    const x2=cx+ (r+13)*Math.cos(a), y2=cy+(r+13)*Math.sin(a);
+    ticks += `<text x="${x1<cx?x1-2:x1+2}" y="${y1+4}" font-size="10" font-weight="700" fill="#9aa3a8" text-anchor="middle" font-family="IBM Plex Mono">${l}</text>`;
+  });
+  return `
+  <svg width="260" height="148" viewBox="0 0 260 148">
+    ${arcs}
+    ${ticks}
+    <g class="needle" style="transform:rotate(${needleAngle}deg); transform-origin:${cx}px ${cy}px;">
+      <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-r+22}" stroke="${LEVEL_COLOR[state.level]}" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="8" fill="${LEVEL_COLOR[state.level]}"/>
+      <circle cx="${cx}" cy="${cy}" r="3.2" fill="#fff"/>
+    </g>
+  </svg>`;
+}
+
+async function setLevel(l) {
+  state.level = l;
+  await sSet('vigilance-level', l);
+  renderHeader();
+  render();
+}
+
+/* ---------------------------------------------------------------- */
+/* View: Accueil                                                     */
+/* ---------------------------------------------------------------- */
+function viewAccueil() {
+  const nbBenef = state.ivtList.length;
+  const nbCritiques = state.ivtList.filter(i=>ivtScore(i)>=6).length;
+  return `
+    <div class="eyebrow">${new Date().toLocaleDateString('fr-FR',{weekday:'long', day:'numeric', month:'long'})}</div>
+    <h1 class="page-title">Niveau de vigilance du jour</h1>
+    <p class="page-sub">Sélectionnez le niveau de vigilance officiel (Météo-France / cellule de crise) pour adapter les consignes du jour.</p>
+
+    <div class="card">
+      <div class="gauge-wrap">
+        ${gaugeSVG()}
+        <div class="gauge-readout">
+          <div class="lvl mono" style="color:${LEVEL_COLOR[state.level]}">N${state.level}</div>
+          <div class="lbl">${LEVEL_NAME[state.level]}<br>${LEVEL_DESC[state.level]}</div>
+        </div>
+      </div>
+      <div class="level-grid">
+        ${[1,2,3,4].map(l => `
+          <div class="level-opt ${state.level===l?'sel':''}" data-setlevel="${l}"
+               style="border-color:${state.level===l?LEVEL_COLOR[l]:'var(--line)'}; background:${state.level===l?LEVEL_SOFT[l]:'#fff'}">
+            <b style="color:${LEVEL_COLOR[l]}">${l}</b>
+            <span>${LEVEL_SHORT[l]}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="qa-grid">
+      <button class="qa" data-goto="fiches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg><b>Fiches terrain du jour</b></button>
+      <button class="qa" data-goto="ivt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="16" r="5"/><path d="M12 2v8"/></svg><b>Calculer un score IVT</b></button>
+      <button class="qa danger" data-goto="alerte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M10.3 3.9L2.7 17a2 2 0 001.7 3h15.2a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 17h.01"/></svg><b>Signe d'alerte chez un bénéficiaire</b></button>
+      <button class="qa" data-goto="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><b>Modèles de messages</b></button>
+    </div>
+
+    <div class="card">
+      <h2 class="sec-title">Suivi en un coup d'œil</h2>
+      <div class="row-between" style="margin-bottom:8px;">
+        <span style="font-size:13.5px;">Bénéficiaires enregistrés</span>
+        <span class="mono" style="font-weight:700;">${nbBenef}</span>
+      </div>
+      <div class="row-between">
+        <span style="font-size:13.5px;">Dont vulnérabilité élevée / majeure</span>
+        <span class="mono" style="font-weight:700; color:${nbCritiques>0?LEVEL_COLOR[3]:'var(--ink)'}">${nbCritiques}</span>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------- */
+/* View: IVT                                                         */
+/* ---------------------------------------------------------------- */
+function ivtFormHTML() {
+  const f = state.ivtForm;
+  return `
+    <div class="card">
+      <div class="row-between" style="margin-bottom:10px;">
+        <h2 class="sec-title" style="margin:0;">${f.editingId? 'Modifier le bénéficiaire' : 'Nouveau bénéficiaire'}</h2>
+        ${f.editingId? `<button class="copy-btn" id="ivtCancel">Annuler</button>` : ''}
+      </div>
+      <div class="field">
+        <label class="field-label">Nom / repère bénéficiaire</label>
+        <input type="text" id="ivtName" placeholder="Ex. Mme R. — secteur Nord" value="${esc(f.name)}">
+      </div>
+      ${CRITERIA.map(c => `
+        <div class="field">
+          <label class="field-label">${c.label}</label>
+          <div class="seg" data-critkey="${c.key}">
+            ${c.options.map((o,i)=>`<button class="sel-${i} ${f[c.key]===i?'active':''}" data-val="${i}">${o}</button>`).join('')}
+          </div>
+        </div>`).join('')}
+      <div class="row-between" style="margin:12px 0;">
+        ${(() => { const sc = ivtScore(f); const it = ivtInterpret(sc); return `
+          <div class="score-ring" style="border-color:${it.color}">
+            <div style="text-align:center;"><div class="n">${sc}</div><div class="d">/10</div></div>
+          </div>
+          <div style="flex:1; padding-left:14px;">
+            <div style="font-weight:700; color:${it.color}; font-size:13.5px;">${it.label}</div>
+            <div style="font-size:12px; color:var(--ink-soft); margin-top:3px; line-height:1.4;">${it.freq}</div>
+          </div>`; })()}
+      </div>
+      <button class="btn btn-primary" id="ivtSave">${f.editingId? 'Enregistrer les modifications' : 'Enregistrer le bénéficiaire'}</button>
+    </div>
+  `;
+}
+
+function viewIVT() {
+  const sorted = [...state.ivtList].sort((a,b)=>ivtScore(b)-ivtScore(a));
+  return `
+    <h1 class="page-title">Indice de Vulnérabilité Thermique</h1>
+    <p class="page-sub">Cotez chaque bénéficiaire à risque pour prioriser les passages selon le niveau de vigilance en cours.</p>
+    ${ivtFormHTML()}
+    <h2 class="sec-title" style="margin-top:4px;">Bénéficiaires enregistrés (${sorted.length})</h2>
+    <div class="card" style="padding:6px 14px;">
+      ${sorted.length===0 ? `<div class="empty"><b>Aucun bénéficiaire enregistré</b>Ajoutez une fiche ci-dessus pour commencer le suivi.</div>` :
+        sorted.map(item => {
+          const sc = ivtScore(item); const it = ivtInterpret(sc);
+          return `
+          <div class="check-row" style="align-items:center;">
+            <div class="score-ring" style="width:46px; height:46px; border-width:4px; border-color:${it.color};">
+              <span class="mono" style="font-size:14px; font-weight:700;">${sc}</span>
+            </div>
+            <div style="flex:1; padding-left:4px;" data-editivt="${item.id}">
+              <div style="font-weight:700; font-size:13.5px;">${esc(item.name)||'Sans nom'}</div>
+              <div style="font-size:11.5px; color:${it.color}; font-weight:700;">${it.label}</div>
+            </div>
+            <button class="icon-btn" data-delivt="${item.id}">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>
+            </button>
+          </div>`;
+        }).join('')}
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------- */
+/* View: Fiches                                                      */
+/* ---------------------------------------------------------------- */
+function fichesPills() {
+  const tabs = [['checklist','Check-list'],['hydratation','Hydratation'],['surveillance','Surveillance'],['transmission','Transmission']];
+  return `<div class="pill-row">${tabs.map(([k,l])=>`<div class="pill ${state.fichesTab===k?'active':''}" data-fichetab="${k}">${l}</div>`).join('')}</div>`;
+}
+
+function viewChecklist() {
+  const done = CHECKLIST_ITEMS.filter((_,i)=>state.fiches.checklist[i]).length;
+  return `
+    <div class="card">
+      <div class="row-between" style="margin-bottom:8px;">
+        <h2 class="sec-title" style="margin:0;">Check-list auxiliaire</h2>
+        <span class="badge mono" style="background:var(--sand-deep); color:var(--navy);">${done}/${CHECKLIST_ITEMS.length}</span>
+      </div>
+      ${CHECKLIST_ITEMS.map((label,i)=>`
+        <div class="check-row ${state.fiches.checklist[i]?'done':''}">
+          <div class="checkbox ${state.fiches.checklist[i]?'checked':''}" data-checkidx="${i}">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <span>${label}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function viewHydratation() {
+  const rows = state.fiches.hydratation;
+  const total = rows.reduce((s,r)=>s+(parseInt(r.qte)||0),0);
+  return `
+    <div class="card">
+      <h2 class="sec-title">Ajouter une prise de boisson</h2>
+      <div class="field"><label class="field-label">Heure</label><input type="text" id="hydHeure" placeholder="ex. 10h30" value="${nowHHMM()}"></div>
+      <div class="field"><label class="field-label">Boisson proposée</label>
+        <select id="hydBoisson"><option>Eau</option><option>Eau gazeuse</option><option>Tisane / thé</option><option>Soupe</option><option>Jus de fruit</option><option>Autre</option></select>
+      </div>
+      <div class="field"><label class="field-label">Quantité estimée (ml)</label><input type="number" id="hydQte" placeholder="ex. 150"></div>
+      <div class="field"><label class="field-label">Observation</label><textarea id="hydObs" placeholder="Refus, bonne prise, aide nécessaire…"></textarea></div>
+      <button class="btn btn-primary" id="hydAdd">Ajouter à la fiche</button>
+    </div>
+    <div class="card">
+      <div class="row-between" style="margin-bottom:8px;">
+        <h2 class="sec-title" style="margin:0;">Suivi du jour</h2>
+        <span class="badge mono" style="background:var(--sand-deep); color:var(--navy);">${total} ml</span>
+      </div>
+      ${rows.length===0? `<div class="empty"><b>Aucune prise enregistrée</b>Objectif indicatif : 1,5 L répartis sur la journée.</div>` : `
+      <table class="mini"><thead><tr><th>Heure</th><th>Boisson</th><th>Qté</th><th>Obs.</th><th></th></tr></thead><tbody>
+      ${rows.map(r=>`<tr>
+        <td>${esc(r.heure)}</td><td>${esc(r.boisson)}</td><td>${esc(r.qte)} ml</td><td>${esc(r.obs)}</td>
+        <td><button class="icon-btn" data-delhyd="${r.id}">✕</button></td>
+      </tr>`).join('')}
+      </tbody></table>`}
+    </div>`;
+}
+
+function nowHHMM(){ const d=new Date(); return d.getHours()+'h'+String(d.getMinutes()).padStart(2,'0'); }
+
+function viewSurveillance() {
+  const surv = state.fiches.surveillance;
+  const hasAlerte = SURVEILLANCE_INDICATORS.some(ind => surv[ind.key] === 2);
+  return `
+    ${hasAlerte ? `
+      <div class="step-card danger" style="margin-bottom:14px;">
+        <b>SIGNE D'ALERTE DÉTECTÉ</b>
+        <p>Au moins un indicateur est au niveau « Alerte ». Suivez immédiatement le logigramme décisionnel.</p>
+        <button class="btn btn-alert" style="margin-top:10px;" data-goto="alerte">Ouvrir le logigramme d'alerte</button>
+      </div>` : ''}
+    <div class="card">
+      <h2 class="sec-title">Fiche de surveillance</h2>
+      ${SURVEILLANCE_INDICATORS.map(ind => `
+        <div class="field">
+          <label class="field-label">${ind.label}</label>
+          <div class="seg" data-survkey="${ind.key}">
+            ${ind.opts.map((o,i)=>`<button class="sel-${i} ${surv[ind.key]===i?'active':''}" data-val="${i}">${o}</button>`).join('')}
+          </div>
+        </div>`).join('')}
+      <p style="font-size:11.5px; color:var(--ink-soft); margin-top:2px;">Toute case « Alerte » déclenche l'application immédiate du logigramme décisionnel.</p>
+    </div>`;
+}
+
+function viewTransmission() {
+  const rows = state.fiches.transmission;
+  return `
+    <div class="card">
+      <h2 class="sec-title">Nouvelle transmission ciblée</h2>
+      <div class="field"><label class="field-label">Bénéficiaire</label><input type="text" id="trBenef" placeholder="Nom / repère"></div>
+      <div class="field"><label class="field-label">Observation transmise</label><textarea id="trObs" placeholder="Ce qui a été constaté…"></textarea></div>
+      <div class="field"><label class="field-label">Action engagée</label><textarea id="trAction" placeholder="Ce qui a été fait / décidé…"></textarea></div>
+      <div class="field"><label class="field-label">Destinataire</label><input type="text" id="trDest" placeholder="Coordinateur, médecin, famille…"></div>
+      <button class="btn btn-primary" id="trAdd">Transmettre</button>
+    </div>
+    <div class="card">
+      <h2 class="sec-title">Transmissions du jour</h2>
+      ${rows.length===0? `<div class="empty"><b>Aucune transmission</b>Les transmissions du jour apparaîtront ici.</div>` :
+        rows.slice().reverse().map(r=>`
+        <div class="msg-card">
+          <div class="msg-head"><b>${esc(r.benef)||'Bénéficiaire'} · ${esc(r.heure)}</b><button class="icon-btn" data-deltr="${r.id}">✕</button></div>
+          <div><strong>Observation :</strong> ${esc(r.obs)}</div>
+          <div><strong>Action :</strong> ${esc(r.action)}</div>
+          <div style="color:var(--ink-soft); margin-top:4px;">Destinataire : ${esc(r.dest)||'—'}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function viewFiches() {
+  const body = state.fichesTab==='checklist'? viewChecklist()
+    : state.fichesTab==='hydratation'? viewHydratation()
+    : state.fichesTab==='surveillance'? viewSurveillance()
+    : viewTransmission();
+  return `
+    <h1 class="page-title">Fiches terrain</h1>
+    <p class="page-sub">Supports à renseigner à chaque visite. Les données du jour sont conservées sur cet appareil.</p>
+    ${fichesPills()}
+    ${body}
+  `;
+}
+
+/* ---------------------------------------------------------------- */
+/* View: Alerte / Logigramme                                         */
+/* ---------------------------------------------------------------- */
+function viewAlerte() {
+  const c = state.contacts;
+  return `
+    <h1 class="page-title" style="color:var(--v4);">Logigramme décisionnel</h1>
+    <p class="page-sub">En cas de signe d'alerte chez un bénéficiaire, suivez ce circuit sans en sauter d'étape.</p>
+
+    <div class="step-card danger" style="margin-bottom:16px;">
+      <b>RÈGLE D'OR</b>
+      <p>En cas de doute, l'auxiliaire n'est jamais seule décisionnaire : elle alerte systématiquement le responsable de secteur. En cas d'urgence vitale manifeste, le 15 (SAMU) est composé sans attendre.</p>
+    </div>
+
+    <div class="step-card"><b>ÉTAPE 1</b><p>Détection d'un signe d'alerte (confusion, fièvre, malaise, propos incohérents, absence de réponse, déshydratation sévère).</p></div>
+    <div class="arrow">▼</div>
+    <div class="step-card warn"><b>ÉTAPE 2</b><p>Mise en sécurité immédiate : installer au frais, faire boire si la personne est consciente et capable d'avaler. Ne jamais laisser seule une personne confuse.</p></div>
+    <div class="arrow">▼</div>
+    <div class="step-card">
+      <b>ÉTAPE 3</b>
+      <p>Appel sans délai du responsable de secteur / coordinateur, en précisant l'état observé.</p>
+      ${c.coordinateur ? `<a class="btn btn-outline" style="margin-top:10px;" href="tel:${esc(c.coordinateur)}">Appeler le coordinateur · ${esc(c.coordinateur)}</a>`
+        : `<button class="btn btn-outline" style="margin-top:10px;" data-goto="plus">Renseigner le numéro du coordinateur</button>`}
+    </div>
+    <div class="arrow">▼</div>
+    <div class="step-card"><b>ÉTAPE 4</b><p>Évaluation par le coordinateur ou l'IDEC : si les signes sont légers et réversibles → surveillance renforcée sur place et information du médecin traitant.</p></div>
+    <div class="arrow">▼</div>
+    <div class="step-card danger">
+      <b>ÉTAPE 5 — URGENCE</b>
+      <p>Si les signes sont sévères, persistants ou s'aggravent (perte de connaissance, température élevée, convulsions, détresse respiratoire) → appel immédiat du SAMU.</p>
+      <a class="btn btn-alert" style="margin-top:10px;" href="tel:15">Appeler le 15 (SAMU)</a>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="step-card"><b>ÉTAPE 6</b><p>Information de la famille / personne de confiance et de la direction ; ouverture d'une fiche événement indésirable et traçabilité dans le registre de crise.</p></div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2 class="sec-title">Consigner l'événement</h2>
+      <p style="font-size:13px; color:var(--ink-soft); margin:0 0 10px;">Pensez à renseigner la fiche de transmission ciblée juste après l'appel.</p>
+      <button class="btn btn-ghost" data-goto="fiches" data-fichetab="transmission">Ouvrir la fiche de transmission</button>
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------- */
+/* View: Référentiel (Plus)                                          */
+/* ---------------------------------------------------------------- */
+const MESSAGES = [
+  { title:'Familles', body:"Madame, Monsieur, en raison de l'alerte canicule en cours, ADONIS renforce la surveillance de votre proche : contrôle de l'hydratation à chaque passage et vigilance accrue sur les signes de déshydratation. Nous vous invitons à veiller, lors de vos visites ou appels, à ce que le logement reste aéré aux heures fraîches et à ce que votre proche boive régulièrement. N'hésitez pas à nous signaler toute observation inhabituelle." },
+  { title:'Médecin traitant / IDEL', body:"Docteur, dans le cadre du plan canicule, nous vous informons que le bénéficiaire suivi présente depuis ce jour des signes inhabituels (fatigue, refus de boire, confusion légère). La surveillance est renforcée par nos équipes. Merci de nous indiquer si une adaptation de la prise en charge ou une visite vous semble nécessaire." },
+  { title:'Partenaires (CCAS, mairie, ARS)', body:"Suite à l'activation du niveau de vigilance canicule en cours, ADONIS confirme la mobilisation de ses équipes auprès des bénéficiaires identifiés comme vulnérables sur votre commune. Nous restons à votre disposition pour toute coordination complémentaire, notamment concernant le registre nominatif des personnes isolées." },
+];
+
+function viewPlus() {
+  const c = state.contacts;
+  const auditDone = AUDIT_QUESTIONS.filter((_,i)=>state.audit[i]).length;
+  return `
+    <h1 class="page-title">Référentiel HAS</h1>
+    <p class="page-sub">Mémo des sections 1, 2, 3, 9 à 14 du Pack d'Excellence HAS — Plan Canicule ADONIS.</p>
+
+    <details class="acc">
+      <summary>Objet & responsabilités</summary>
+      <div class="acc-body">
+        <p>Prévenir les conséquences sanitaires de la chaleur, détecter précocement les signes d'alerte et garantir la continuité de l'accompagnement, conformément au Plan National Canicule et au référentiel HAS.</p>
+        <ul>
+          <li><strong>Direction :</strong> active/désactive le plan, valide les moyens, communique avec les autorités.</li>
+          <li><strong>Responsable Qualité / IDEC :</strong> pilote la cellule de crise, met à jour la cartographie et la grille IVT.</li>
+          <li><strong>Responsable de secteur :</strong> organise les tournées, réaffecte les intervenants.</li>
+          <li><strong>Auxiliaires de vie :</strong> appliquent les fiches terrain, signalent toute anomalie.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Organisation — Contacts de la cellule de crise</summary>
+      <div class="acc-body">
+        <div class="field"><label class="field-label">Coordinateur / responsable de secteur</label><input type="text" id="cCoord" placeholder="Numéro de téléphone" value="${esc(c.coordinateur)}"></div>
+        <div class="field"><label class="field-label">Astreinte</label><input type="text" id="cAstreinte" placeholder="Numéro de téléphone" value="${esc(c.astreinte)}"></div>
+        <div class="field"><label class="field-label">Médecin référent</label><input type="text" id="cMedecin" placeholder="Numéro de téléphone" value="${esc(c.medecin)}"></div>
+        <button class="btn btn-primary" id="contactsSave">Enregistrer les contacts</button>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Communication — Modèles de messages</summary>
+      <div class="acc-body">
+        ${MESSAGES.map((m,i)=>`
+          <div class="msg-card">
+            <div class="msg-head"><b>${esc(m.title)}</b><button class="copy-btn" data-copymsg="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copier</button></div>
+            <div>${esc(m.body)}</div>
+          </div>`).join('')}
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Continuité d'activité — Priorisation</summary>
+      <div class="acc-body">
+        <ul>
+          <li>Bénéficiaires à score IVT élevé ou majeur.</li>
+          <li>Aide aux actes essentiels (alimentation, hydratation, hygiène).</li>
+          <li>Bénéficiaires isolés sans aidant identifiable dans la journée.</li>
+          <li>Autres bénéficiaires, avec adaptation ou report concerté de la visite.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Formation — Programme annuel</summary>
+      <div class="acc-body">
+        <table class="mini"><tbody>
+          <tr><td><strong>Avril</strong></td><td>Rappel des consignes, mise à jour IVT</td></tr>
+          <tr><td><strong>Mai</strong></td><td>Atelier reconnaissance des signes d'alerte</td></tr>
+          <tr><td><strong>Juin</strong></td><td>Simulation d'une canicule extrême</td></tr>
+          <tr><td><strong>Septembre</strong></td><td>Retour d'expérience de fin de saison</td></tr>
+        </tbody></table>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Indicateurs qualité</summary>
+      <div class="acc-body">
+        <table class="mini"><tbody>
+          <tr><td>Grilles IVT à jour</td><td><strong>Cible 100 %</strong></td></tr>
+          <tr><td>Complétude des fiches terrain</td><td><strong>Cible ≥ 95 %</strong></td></tr>
+          <tr><td>Délai moyen de remontée d'alerte</td><td><strong>Cible ≤ 30 min</strong></td></tr>
+          <tr><td>Visites non réalisées en tension</td><td><strong>Cible ≤ 2 %</strong></td></tr>
+        </tbody></table>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Audit interne — Auto-évaluation (${auditDone}/${AUDIT_QUESTIONS.length})</summary>
+      <div class="acc-body">
+        ${AUDIT_QUESTIONS.map((q,i)=>`
+          <div class="check-row ${state.audit[i]?'done':''}">
+            <div class="checkbox ${state.audit[i]?'checked':''}" data-auditidx="${i}">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <span>${q}</span>
+          </div>`).join('')}
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>À propos</summary>
+      <div class="acc-body">
+        <p>PC-ADONIS-CANICULE-01 — v1.0. Application compagnon du Pack d'Excellence HAS, Plan Canicule ADONIS. Les données saisies sont conservées sur cet appareil.</p>
+        <button class="btn btn-outline" id="resetAll">Réinitialiser les données de l'application</button>
+      </div>
+    </details>
+  `;
+}
+
+/* ---------------------------------------------------------------- */
+/* Router / render                                                   */
+/* ---------------------------------------------------------------- */
+function render() {
+  const main = document.getElementById('main');
+  if (state.tab === 'accueil') main.innerHTML = viewAccueil();
+  else if (state.tab === 'ivt') main.innerHTML = viewIVT();
+  else if (state.tab === 'fiches') main.innerHTML = viewFiches();
+  else if (state.tab === 'alerte') main.innerHTML = viewAlerte();
+  else main.innerHTML = viewPlus();
+
+  document.querySelectorAll('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab===state.tab));
+  attachEvents();
+  main.scrollTop = main._keepScroll ? main._keepScroll : 0;
+  main._keepScroll = 0;
+}
+
+function goto(tab, extra) {
+  state.tab = tab;
+  if (extra && extra.fichesTab) state.fichesTab = extra.fichesTab;
+  render();
+}
+
+/* ---------------------------------------------------------------- */
+/* Event wiring                                                      */
+/* ---------------------------------------------------------------- */
+function attachEvents() {
+  const main = document.getElementById('main');
+
+  main.querySelectorAll('[data-goto]').forEach(el => {
+    el.addEventListener('click', () => goto(el.dataset.goto, { fichesTab: el.dataset.fichetab }));
+  });
+  main.querySelectorAll('[data-setlevel]').forEach(el => {
+    el.addEventListener('click', () => setLevel(parseInt(el.dataset.setlevel)));
+  });
+
+  /* ---- IVT form ---- */
+  const nameInput = document.getElementById('ivtName');
+  if (nameInput) nameInput.addEventListener('input', e => { state.ivtForm.name = e.target.value; });
+
+  main.querySelectorAll('[data-critkey]').forEach(group => {
+    group.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.ivtForm[group.dataset.critkey] = parseInt(btn.dataset.val);
+        main._keepScroll = main.scrollTop;
+        render();
+      });
+    });
+  });
+  const ivtSave = document.getElementById('ivtSave');
+  if (ivtSave) ivtSave.addEventListener('click', async () => {
+    const f = state.ivtForm;
+    if (f.editingId) {
+      const idx = state.ivtList.findIndex(i=>i.id===f.editingId);
+      if (idx>-1) state.ivtList[idx] = { ...f, id:f.editingId };
+    } else {
+      state.ivtList.push({ ...f, id:uid() });
+    }
+    await sSet('ivt-list', state.ivtList);
+    state.ivtForm = { editingId:null, name:'', age:0, autonomie:0, pathologie:0, isolement:0, logement:0 };
+    toast('Bénéficiaire enregistré');
+    render();
+  });
+  const ivtCancel = document.getElementById('ivtCancel');
+  if (ivtCancel) ivtCancel.addEventListener('click', () => {
+    state.ivtForm = { editingId:null, name:'', age:0, autonomie:0, pathologie:0, isolement:0, logement:0 };
+    render();
+  });
+  main.querySelectorAll('[data-editivt]').forEach(el => {
+    el.addEventListener('click', () => {
+      const item = state.ivtList.find(i=>i.id===el.dataset.editivt);
+      if (item) { state.ivtForm = { ...item, editingId:item.id }; main._keepScroll = 0; render(); window.scrollTo(0,0); }
+    });
+  });
+  main.querySelectorAll('[data-delivt]').forEach(el => {
+    el.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      state.ivtList = state.ivtList.filter(i=>i.id!==el.dataset.delivt);
+      await sSet('ivt-list', state.ivtList);
+      toast('Bénéficiaire supprimé');
+      render();
+    });
+  });
+
+  /* ---- Fiches pills ---- */
+  main.querySelectorAll('[data-fichetab]').forEach(el => {
+    if (el.dataset.goto) return;
+    el.addEventListener('click', () => { state.fichesTab = el.dataset.fichetab; render(); });
+  });
+
+  /* ---- Checklist ---- */
+  main.querySelectorAll('[data-checkidx]').forEach(el => {
+    el.addEventListener('click', async () => {
+      const i = el.dataset.checkidx;
+      state.fiches.checklist[i] = !state.fiches.checklist[i];
+      await sSet('fiches-data', state.fiches);
+      render();
+    });
+  });
+
+  /* ---- Hydratation ---- */
+  const hydAdd = document.getElementById('hydAdd');
+  if (hydAdd) hydAdd.addEventListener('click', async () => {
+    const heure = document.getElementById('hydHeure').value.trim() || nowHHMM();
+    const boisson = document.getElementById('hydBoisson').value;
+    const qte = document.getElementById('hydQte').value || '0';
+    const obs = document.getElementById('hydObs').value.trim();
+    state.fiches.hydratation.push({ id:uid(), heure, boisson, qte, obs });
+    await sSet('fiches-data', state.fiches);
+    toast('Prise ajoutée');
+    render();
+  });
+  main.querySelectorAll('[data-delhyd]').forEach(el => {
+    el.addEventListener('click', async () => {
+      state.fiches.hydratation = state.fiches.hydratation.filter(r=>r.id!==el.dataset.delhyd);
+      await sSet('fiches-data', state.fiches);
+      render();
+    });
+  });
+
+  /* ---- Surveillance ---- */
+  main.querySelectorAll('[data-survkey]').forEach(group => {
+    group.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        state.fiches.surveillance[group.dataset.survkey] = parseInt(btn.dataset.val);
+        await sSet('fiches-data', state.fiches);
+        render();
+      });
+    });
+  });
+
+  /* ---- Transmission ---- */
+  const trAdd = document.getElementById('trAdd');
+  if (trAdd) trAdd.addEventListener('click', async () => {
+    const benef = document.getElementById('trBenef').value.trim();
+    const obs = document.getElementById('trObs').value.trim();
+    const action = document.getElementById('trAction').value.trim();
+    const dest = document.getElementById('trDest').value.trim();
+    if (!obs) { toast('Merci de décrire l’observation'); return; }
+    state.fiches.transmission.push({ id:uid(), heure:nowHHMM(), benef, obs, action, dest });
+    await sSet('fiches-data', state.fiches);
+    toast('Transmission enregistrée');
+    render();
+  });
+  main.querySelectorAll('[data-deltr]').forEach(el => {
+    el.addEventListener('click', async () => {
+      state.fiches.transmission = state.fiches.transmission.filter(r=>r.id!==el.dataset.deltr);
+      await sSet('fiches-data', state.fiches);
+      render();
+    });
+  });
+
+  /* ---- Référentiel ---- */
+  main.querySelectorAll('[data-copymsg]').forEach(el => {
+    el.addEventListener('click', () => copyText(MESSAGES[parseInt(el.dataset.copymsg)].body));
+  });
+  main.querySelectorAll('[data-auditidx]').forEach(el => {
+    el.addEventListener('click', async () => {
+      const i = el.dataset.auditidx;
+      state.audit[i] = !state.audit[i];
+      await sSet('audit-checklist', state.audit);
+      render();
+    });
+  });
+  const contactsSave = document.getElementById('contactsSave');
+  if (contactsSave) contactsSave.addEventListener('click', async () => {
+    state.contacts = {
+      coordinateur: document.getElementById('cCoord').value.trim(),
+      astreinte: document.getElementById('cAstreinte').value.trim(),
+      medecin: document.getElementById('cMedecin').value.trim(),
+    };
+    await sSet('contacts', state.contacts);
+    toast('Contacts enregistrés');
+  });
+  const resetAll = document.getElementById('resetAll');
+  if (resetAll) resetAll.addEventListener('click', async () => {
+    if (!confirm('Réinitialiser toutes les données enregistrées sur cet appareil ?')) return;
+    for (const k of ['vigilance-level','ivt-list','fiches-data','contacts','audit-checklist']) {
+      try { localStorage.removeItem(k); } catch(e) {}
+    }
+    state.level = 1; state.ivtList = []; state.contacts = { coordinateur:'', astreinte:'', medecin:'' }; state.audit = {};
+    state.fiches = { date: todayStr(), checklist:{}, hydratation:[], surveillance:{}, transmission:[] };
+    renderHeader();
+    toast('Données réinitialisées');
+    render();
+  });
+}
+
+/* ---------------------------------------------------------------- */
+/* Tab bar + boot                                                    */
+/* ---------------------------------------------------------------- */
+document.getElementById('tabbar').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn) return;
+  state.tab = btn.dataset.tab;
+  render();
+});
+
+(async function boot() {
+  await loadState();
+  renderHeader();
+  render();
+})();
+
+/* ---------------------------------------------------------------- */
+/* Service worker — fonctionnement hors connexion                    */
+/* ---------------------------------------------------------------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW non disponible :', err));
+  });
+}
+
+</script>
+</body>
+</html>
