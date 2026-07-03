@@ -258,6 +258,7 @@ table.t tr:nth-child(even) td{background:var(--bg);}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBxBD6ZZQi6YmRkpndqHNu2DcsoDfwnBW4",
@@ -270,6 +271,30 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 window._auth = firebase.auth();
 window._db = firebase.firestore();
+// FCM — Notifications push
+window._vapidKey = "BMmWpAwfWjUvhBQlZk63EuwZpvgzpHHjYafsBRvGtrVwOTV3WgzQHOzBAdQg6Yiui2mnI4L7eT46g_00jhCX9mU";
+async function initNotifications(){
+  try{
+    if(!("Notification" in window)||!("serviceWorker" in navigator))return;
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){console.log("Notifications refusees");return;}
+    const msg=firebase.messaging();
+    const token=await msg.getToken({vapidKey:window._vapidKey});
+    if(token){
+      const uid=window._auth.currentUser?.uid;
+      if(uid){
+        await window._db.collection("users").doc(uid).set({fcmToken:token,updatedAt:new Date().toISOString()},{merge:true});
+        console.log("Token FCM enregistre:",token.slice(0,20)+"...");
+      }
+    }
+    msg.onMessage(payload=>{
+      const {title,body}=payload.notification||{};
+      if(title){
+        new Notification(title,{body:body||"",icon:"icons/icon-192.png"});
+      }
+    });
+  }catch(e){console.warn("FCM init error:",e);}
+}
 </script>
 
 </head>
@@ -1135,7 +1160,15 @@ function attach(){
     if(!t){toast("Sélectionnez un type de signal");return;}
     S.signals.push({id:uid(),date:td(),type:t,niveau:siNiv,desc:d,action:a,benefId:bid||null,closed:false});
     const lastSig=S.signals[S.signals.length-1];
-    if(lastSig){fsSet("signals",lastSig.id,lastSig);}
+    if(lastSig){
+      fsSet("signals",lastSig.id,lastSig);
+      if(lastSig.niveau>=2&&Notification.permission==="granted"){
+        new Notification("⚠️ Signal "+lastSig.niveau+" déclaré — Cognitive Care",{
+          body:"Type : "+lastSig.type+". Consultez l'onglet Qualité.",
+          icon:"icons/icon-192.png"
+        });
+      }
+    }
     ss("cc-signals",S.signals);toast("Signal enregistré");renderHeader();render();
   });
   m.querySelectorAll("[data-closesig]").forEach(el=>el.addEventListener("click",()=>{
@@ -1160,7 +1193,15 @@ function attach(){
     if(!t){toast("Sélectionnez un type d'EI");return;}
     S.ei.push({id:uid(),date:dt||td(),type:t,grav:eiGrav,desc:d,mesures:ms,benefId:bid||null,closed:false});
     const lastEi=S.ei[S.ei.length-1];
-    if(lastEi){fsSet("ei",lastEi.id,lastEi);}
+    if(lastEi){
+      fsSet("ei",lastEi.id,lastEi);
+      if(lastEi.grav>=2&&Notification.permission==="granted"){
+        new Notification("🚨 Événement indésirable — Cognitive Care",{
+          body:"Type : "+lastEi.type+" (gravité "+lastEi.grav+"). Action requise.",
+          icon:"icons/icon-192.png"
+        });
+      }
+    }
     ss("cc-ei",S.ei);toast("EI enregistré");renderHeader();render();
   });
   m.querySelectorAll("[data-closeei]").forEach(el=>el.addEventListener("click",()=>{
@@ -1394,6 +1435,8 @@ window._auth.onAuthStateChanged(async user=>{
     // Charger les données depuis Firestore
     await loadAll();
     hideAuth();renderHeader();render();
+    // Activer les notifications push
+    setTimeout(initNotifications, 1000);
   } else {
     showAuth();
   }
