@@ -297,6 +297,7 @@ async function initNotifications(){
 }
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -1269,24 +1270,95 @@ function attach(){
 
   // Export HAS
   const exp=document.getElementById("exportHAS");
-  if(exp)exp.addEventListener("click",()=>{
-    const rapport=`RAPPORT DE SYNTHÈSE — COGNITIVE CARE
-Date : ${new Date().toLocaleDateString("fr-FR")}
-Niveau de vigilance canicule : N${S.level} — ${LN[S.level]}
+  if(exp)exp.addEventListener("click",async()=>{
+    try{
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+      const date=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+      const auditScore=AUDIT_QS.filter((_,i)=>S.audit[i]).length;
+      const pct=Math.round(auditScore/AUDIT_QS.length*100);
 
-BÉNÉFICIAIRES : ${S.benef.length}
-Grilles IVT renseignées : ${S.ivtList.length}
-Bénéficiaires à IVT élevé/majeur : ${S.ivtList.filter(i=>ivtSc(i)>=6).length}
+      // En-tête
+      doc.setFillColor(26,77,184);
+      doc.rect(0,0,210,28,"F");
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(18);doc.setFont("helvetica","bold");
+      doc.text("Cognitive Care SAAD",14,12);
+      doc.setFontSize(10);doc.setFont("helvetica","normal");
+      doc.text("Rapport de synthese HAS — Plan Canicule",14,20);
+      doc.text(date,196,20,{align:"right"});
 
-SIGNAUX FAIBLES : ${S.signals.length} déclarés (${S.signals.filter(s=>!s.closed).length} ouverts)
-ÉVÉNEMENTS INDÉSIRABLES : ${S.ei.length} déclarés (${S.ei.filter(e=>!e.closed).length} ouverts)
+      // Ligne orange
+      doc.setFillColor(230,97,10);
+      doc.rect(0,28,210,2,"F");
 
-AUDIT HAS : ${AUDIT_QS.filter((_,i)=>S.audit[i]).length}/${AUDIT_QS.length} critères validés
+      // Titre principal
+      doc.setTextColor(31,59,87);
+      doc.setFontSize(14);doc.setFont("helvetica","bold");
+      doc.text("RAPPORT DE SYNTHESE — AUDIT HAS",14,40);
+      doc.setFontSize(10);doc.setFont("helvetica","normal");
+      doc.setTextColor(90,103,112);
+      doc.text("Document genere automatiquement par la plateforme Cognitive Care",14,47);
 
-Généré par Cognitive Care — Plateforme SAAD HAS`;
-    const blob=new Blob([rapport],{type:"text/plain;charset=utf-8"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="rapport_has_"+td()+".txt";a.click();
-    toast("Rapport généré !");
+      // Section 1 — Niveau de vigilance
+      let y=58;
+      doc.setFillColor(234,241,246);
+      doc.rect(14,y-5,182,8,"F");
+      doc.setTextColor(26,77,184);doc.setFontSize(11);doc.setFont("helvetica","bold");
+      doc.text("1. NIVEAU DE VIGILANCE CANICULE",16,y);
+      y+=8;
+      doc.setTextColor(45,55,72);doc.setFontSize(10);doc.setFont("helvetica","normal");
+      doc.text("Niveau actuel : N"+S.level+" — "+LN[S.level],16,y);y+=6;
+
+      // Section 2 — Beneficiaires
+      y+=4;
+      doc.setFillColor(234,241,246);
+      doc.rect(14,y-5,182,8,"F");
+      doc.setTextColor(26,77,184);doc.setFontSize(11);doc.setFont("helvetica","bold");
+      doc.text("2. BENEFICIAIRES",16,y);y+=8;
+      doc.setTextColor(45,55,72);doc.setFontSize(10);doc.setFont("helvetica","normal");
+      doc.text("Nombre total de beneficiaires : "+S.benef.length,16,y);y+=6;
+      doc.text("Grilles IVT renseignees : "+S.ivtList.length,16,y);y+=6;
+      doc.text("Dont vulnerabilite elevee ou majeure : "+S.ivtList.filter(i=>ivtSc(i)>=6).length,16,y);y+=6;
+
+      // Section 3 — Qualite
+      y+=4;
+      doc.setFillColor(234,241,246);
+      doc.rect(14,y-5,182,8,"F");
+      doc.setTextColor(26,77,184);doc.setFontSize(11);doc.setFont("helvetica","bold");
+      doc.text("3. INDICATEURS QUALITE",16,y);y+=8;
+      doc.setTextColor(45,55,72);doc.setFontSize(10);doc.setFont("helvetica","normal");
+      doc.text("Signaux faibles declares : "+S.signals.length+" ("+S.signals.filter(s=>!s.closed).length+" ouverts)",16,y);y+=6;
+      doc.text("Evenements indesirables declares : "+S.ei.length+" ("+S.ei.filter(e=>!e.closed).length+" ouverts)",16,y);y+=6;
+
+      // Section 4 — Audit HAS
+      y+=4;
+      doc.setFillColor(234,241,246);
+      doc.rect(14,y-5,182,8,"F");
+      doc.setTextColor(26,77,184);doc.setFontSize(11);doc.setFont("helvetica","bold");
+      doc.text("4. AUTO-EVALUATION HAS",16,y);y+=8;
+      doc.setTextColor(45,55,72);doc.setFontSize(10);doc.setFont("helvetica","normal");
+      doc.text("Score : "+auditScore+"/"+AUDIT_QS.length+" criteres valides ("+pct+"%)",16,y);y+=6;
+      AUDIT_QS.forEach((q,i)=>{
+        const ok=S.audit[i];
+        doc.setTextColor(ok?30:200,ok?122:50,ok?74:42);
+        doc.text((ok?"✓ ":"✗ ")+q.substring(0,80),18,y);y+=5;
+        if(y>260){doc.addPage();y=20;}
+      });
+
+      // Pied de page
+      doc.setFillColor(26,77,184);
+      doc.rect(0,282,210,15,"F");
+      doc.setTextColor(255,255,255);doc.setFontSize(8);
+      doc.text("Cognitive Care SAAD — Document confidentiel — "+date,14,290);
+      doc.text("Page 1",196,290,{align:"right"});
+
+      doc.save("Rapport_HAS_CognitiveCare_"+td()+".pdf");
+      toast("PDF genere et telecharge !");
+    }catch(e){
+      console.error("Erreur PDF:",e);
+      toast("Erreur generation PDF");
+    }
   });
 }
 
