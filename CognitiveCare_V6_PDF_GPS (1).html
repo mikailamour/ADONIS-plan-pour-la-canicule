@@ -967,6 +967,10 @@ ${t==="tele"?pTele():t==="messages"?pMessages():t==="contacts"?pContacts():pProf
 }
 
 function pTele(){
+  // Demander la permission GPS dès l'ouverture de la télégestion
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(()=>{},()=>{},{timeout:1});
+  }
   const today=S.telegest.filter(t=>t.date===td());
   const active=today.find(t=>!t.fin);
   return"<div class=\"card\"><h2 class=\"sh\">Pointage du jour</h2>"
