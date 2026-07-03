@@ -257,6 +257,7 @@ table.t tr:nth-child(even) td{background:var(--bg);}
 <!-- ══ Firebase Auth SDK ══ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBxBD6ZZQi6YmRkpndqHNu2DcsoDfwnBW4",
@@ -268,6 +269,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 window._auth = firebase.auth();
+window._db = firebase.firestore();
 </script>
 
 </head>
@@ -469,20 +471,99 @@ function fdate(d){if(!d)return"—";const x=new Date(d);return x.toLocaleDateStr
 function avatarLetter(name){return(name||"?").charAt(0).toUpperCase();}
 function avatarColor(name){let h=0;for(let i=0;i<(name||"").length;i++)h=(h+name.charCodeAt(i))%AVATARC.length;return AVATARC[h];}
 
-// ── Storage
+// ── Storage LOCAL (pour données de session et config)
 function sg(k,fb){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):fb;}catch{return fb;}}
 function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
-function loadAll(){
-  S.role=sg("cc-role",null);S.level=sg("cc-level",1);
-  S.benef=sg("cc-benef",[]);S.ivtList=sg("cc-ivt",[]);
-  S.signals=sg("cc-signals",[]);S.ei=sg("cc-ei",[]);
-  S.telegest=sg("cc-telegest",[]);S.audit=sg("cc-audit",{});
-  S.contacts=sg("cc-contacts",{coord:"",astreinte:"",medecin:""});
-  const v=sg("cc-visit",null);
-  if(v&&v.date===td())S.visit=v;
-  else{S.visit={date:td(),cl:{},surv:{},hyd:[],trans:[],obs:"",photo:null};ss("cc-visit",S.visit);}
+
+// ── Firestore helpers (données partagées entre appareils)
+function getUserId(){return window._auth.currentUser?window._auth.currentUser.uid:null;}
+
+async function fsSet(collection, docId, data){
+  try{
+    const uid=getUserId();if(!uid)return;
+    await window._db.collection("users").doc(uid).collection(collection).doc(docId).set(data,{merge:true});
+  }catch(e){console.warn("Firestore write error:",e);}
 }
-function saveV(){ss("cc-visit",S.visit);}
+
+async function fsGet(collection, docId){
+  try{
+    const uid=getUserId();if(!uid)return null;
+    const doc=await window._db.collection("users").doc(uid).collection(collection).doc(docId).get();
+    return doc.exists?doc.data():null;
+  }catch(e){console.warn("Firestore read error:",e);return null;}
+}
+
+async function fsGetAll(collection){
+  try{
+    const uid=getUserId();if(!uid)return[];
+    const snap=await window._db.collection("users").doc(uid).collection(collection).get();
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.warn("Firestore list error:",e);return[];}
+}
+
+async function fsDelete(collection, docId){
+  try{
+    const uid=getUserId();if(!uid)return;
+    await window._db.collection("users").doc(uid).collection(collection).doc(docId).delete();
+  }catch(e){console.warn("Firestore delete error:",e);}
+}
+
+function fsListen(collection, callback){
+  const uid=getUserId();if(!uid)return()=>{};
+  return window._db.collection("users").doc(uid).collection(collection)
+    .onSnapshot(snap=>{
+      const items=snap.docs.map(d=>({id:d.id,...d.data()}));
+      callback(items);
+    },e=>console.warn("Firestore listen error:",e));
+}
+async function loadAll(){
+  S.role=sg("cc-role",null);
+  S.level=sg("cc-level",1);
+  // Charger depuis Firestore si connecté
+  const uid=getUserId();
+  if(uid){
+    try{
+      const [benef,ivt,signals,ei,telegest,audit,contacts]=await Promise.all([
+        fsGetAll("benef"),
+        fsGetAll("ivt"),
+        fsGetAll("signals"),
+        fsGetAll("ei"),
+        fsGetAll("telegest"),
+        fsGet("settings","audit"),
+        fsGet("settings","contacts"),
+      ]);
+      S.benef=benef||[];
+      S.ivtList=ivt||[];
+      S.signals=signals||[];
+      S.ei=ei||[];
+      S.telegest=telegest||[];
+      S.audit=audit||{};
+      S.contacts=contacts||{coord:"",astreinte:"",medecin:""};
+      // Visite du jour
+      const visit=await fsGet("visits",td());
+      if(visit){S.visit=visit;}
+      else{S.visit={date:td(),cl:{},surv:{},hyd:[],trans:[],obs:"",photo:null};}
+    }catch(e){
+      console.warn("Erreur chargement Firestore, fallback localStorage",e);
+      S.benef=sg("cc-benef",[]);S.ivtList=sg("cc-ivt",[]);
+      S.signals=sg("cc-signals",[]);S.ei=sg("cc-ei",[]);
+      S.telegest=sg("cc-telegest",[]);S.audit=sg("cc-audit",{});
+      S.contacts=sg("cc-contacts",{coord:"",astreinte:"",medecin:""});
+    }
+  } else {
+    S.benef=sg("cc-benef",[]);S.ivtList=sg("cc-ivt",[]);
+    S.signals=sg("cc-signals",[]);S.ei=sg("cc-ei",[]);
+    S.telegest=sg("cc-telegest",[]);S.audit=sg("cc-audit",{});
+    S.contacts=sg("cc-contacts",{coord:"",astreinte:"",medecin:""});
+    const v=sg("cc-visit",null);
+    if(v&&v.date===td())S.visit=v;
+    else S.visit={date:td(),cl:{},surv:{},hyd:[],trans:[],obs:"",photo:null};
+  }
+}
+function saveV(){
+  ss("cc-visit",S.visit);
+  fsSet("visits",td(),S.visit);
+}
 
 // ── IVT
 function ivtSc(i){return(i.age||0)+(i.aut||0)+(i.pat||0)+(i.iso||0)+(i.log||0);}
@@ -938,7 +1019,8 @@ function attach(){
 
   // Niveau vigilance
   m.querySelectorAll("[data-sl]").forEach(el=>el.addEventListener("click",()=>{
-    S.level=parseInt(el.dataset.sl);ss("cc-level",S.level);renderHeader();m._sc=m.scrollTop;render();
+    S.level=parseInt(el.dataset.sl);ss("cc-level",S.level);
+    fsSet("settings","level",{value:S.level});renderHeader();m._sc=m.scrollTop;render();
   }));
 
   // Tabs
@@ -1031,6 +1113,8 @@ function attach(){
     if(benSel)f.benefId=benSel.value||null;
     if(f.id){const idx=S.ivtList.findIndex(i=>i.id===f.id);if(idx>-1)S.ivtList[idx]={...f};}
     else S.ivtList.push({...f,id:uid()});
+    const lastIvt=S.ivtList[S.ivtList.length-1];
+    if(lastIvt){fsSet("ivt",lastIvt.id,lastIvt);}
     ss("cc-ivt",S.ivtList);S.ivtForm={id:null,name:"",age:0,aut:0,pat:0,iso:0,log:0};toast("Enregistré");render();
   });
   const ivtCa=document.getElementById("ivtCancel");
@@ -1050,10 +1134,14 @@ function attach(){
     const bid=document.getElementById("siBenef").value;
     if(!t){toast("Sélectionnez un type de signal");return;}
     S.signals.push({id:uid(),date:td(),type:t,niveau:siNiv,desc:d,action:a,benefId:bid||null,closed:false});
+    const lastSig=S.signals[S.signals.length-1];
+    if(lastSig){fsSet("signals",lastSig.id,lastSig);}
     ss("cc-signals",S.signals);toast("Signal enregistré");renderHeader();render();
   });
   m.querySelectorAll("[data-closesig]").forEach(el=>el.addEventListener("click",()=>{
-    const s=S.signals.find(x=>x.id===el.dataset.closesig);if(s)s.closed=true;ss("cc-signals",S.signals);toast("Signal clôturé");render();
+    const s=S.signals.find(x=>x.id===el.dataset.closesig);if(s)s.closed=true;const closedSig=S.signals.find(x=>x.id===el.dataset.closesig);
+    if(closedSig){fsSet("signals",closedSig.id,closedSig);}
+    ss("cc-signals",S.signals);toast("Signal clôturé");render();
   }));
 
   // EI
@@ -1071,6 +1159,8 @@ function attach(){
     const bid=document.getElementById("eiBenef").value;
     if(!t){toast("Sélectionnez un type d'EI");return;}
     S.ei.push({id:uid(),date:dt||td(),type:t,grav:eiGrav,desc:d,mesures:ms,benefId:bid||null,closed:false});
+    const lastEi=S.ei[S.ei.length-1];
+    if(lastEi){fsSet("ei",lastEi.id,lastEi);}
     ss("cc-ei",S.ei);toast("EI enregistré");renderHeader();render();
   });
   m.querySelectorAll("[data-closeei]").forEach(el=>el.addEventListener("click",()=>{
@@ -1079,7 +1169,7 @@ function attach(){
 
   // Audit
   m.querySelectorAll("[data-aud]").forEach(el=>el.addEventListener("click",()=>{
-    const i=el.dataset.aud;S.audit[i]=!S.audit[i];ss("cc-audit",S.audit);render();
+    const i=el.dataset.aud;S.audit[i]=!S.audit[i];ss("cc-audit",S.audit);fsSet("settings","audit",S.audit);render();
   }));
 
   // Télégestion
@@ -1087,12 +1177,17 @@ function attach(){
   if(pE)pE.addEventListener("click",()=>{
     const lieu=document.getElementById("ptLieu").value;
     S.telegest.push({id:uid(),date:td(),debut:hhmm(),fin:null,lieu,sig:null});
-    ss("cc-telegest",S.telegest);toast("Pointage d'entrée enregistré");render();
+    ss("cc-telegest",S.telegest);
+    const activeTele=S.telegest.find(t=>t.date===td()&&!t.fin);
+    if(activeTele){fsSet("telegest",activeTele.id,activeTele);}
+    toast("Pointage d'entrée enregistré");render();
   });
   const pS=document.getElementById("pointSortie");
   if(pS)pS.addEventListener("click",()=>{
     const active=S.telegest.find(t=>t.date===td()&&!t.fin);
-    if(active){active.fin=hhmm();ss("cc-telegest",S.telegest);toast("Pointage de sortie enregistré");render();}
+    if(active){active.fin=hhmm();ss("cc-telegest",S.telegest);
+    if(active){fsSet("telegest",active.id,active);}
+    toast("Pointage de sortie enregistré");render();}
   });
 
   // Signature
@@ -1118,7 +1213,7 @@ function attach(){
   const sCont=document.getElementById("saveContacts");
   if(sCont)sCont.addEventListener("click",()=>{
     S.contacts={coord:document.getElementById("cCoord").value.trim(),astreinte:document.getElementById("cAstr").value.trim(),medecin:document.getElementById("cMed").value.trim()};
-    ss("cc-contacts",S.contacts);toast("Contacts enregistrés");render();
+    ss("cc-contacts",S.contacts);fsSet("settings","contacts",S.contacts);toast("Contacts enregistrés");render();
   });
 
   // Profil
@@ -1185,6 +1280,9 @@ function attachBenefForm(){
     if(!obj.nom&&!obj.prenom){toast("Renseignez au moins un nom");return;}
     if(bid){const idx=S.benef.findIndex(b=>b.id===bid);if(idx>-1)S.benef[idx]={...S.benef[idx],...obj};}
     else S.benef.push({...obj,id:uid()});
+    // Sauvegarder dans Firestore
+    const lastBenef=S.benef[S.benef.length-1]||S.benef.find(b=>b.id===bid);
+    if(lastBenef){fsSet("benef",lastBenef.id,lastBenef);}
     ss("cc-benef",S.benef);S.benefView=null;toast("Bénéficiaire enregistré");S.tab="benef";render();
   });
   const canB=document.getElementById("cancelBenef");
@@ -1287,13 +1385,14 @@ function logoutFirebase(){
 }
 
 // Observer l'état de connexion Firebase
-window._auth.onAuthStateChanged(user=>{
+window._auth.onAuthStateChanged(async user=>{
   if(user){
-    // Récupérer le rôle sauvegardé pour cet utilisateur
     const savedRole=sg("cc-role-"+user.uid, null);
     if(savedRole){S.role=savedRole;}
-    else if(!S.role){S.role="auxiliaire";} // rôle par défaut
+    else if(!S.role){S.role="auxiliaire";}
     ss("cc-role",S.role);
+    // Charger les données depuis Firestore
+    await loadAll();
     hideAuth();renderHeader();render();
   } else {
     showAuth();
@@ -1304,15 +1403,11 @@ document.getElementById("tabbar").addEventListener("click",e=>{
 });
 
 // ── Boot
-(function boot(){
-  loadAll();
-  setTimeout(()=>{
-    document.getElementById("splash").classList.add("out");
-    if(!S.role)showAuth();
-    else{document.getElementById("shell").style.display="flex";renderHeader();render();}
-    setTimeout(()=>document.getElementById("splash").remove(),600);
-  },1600);
-})();
+// Boot géré par onAuthStateChanged — le splash reste jusqu'à la connexion
+setTimeout(()=>{
+  document.getElementById("splash").classList.add("out");
+  setTimeout(()=>{try{document.getElementById("splash").remove();}catch(e){}},600);
+},1800);
 
 if("serviceWorker"in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
