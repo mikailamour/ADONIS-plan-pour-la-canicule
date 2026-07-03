@@ -616,16 +616,16 @@ function viewHome(){
   return`
 <div class="ey">${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</div>
 <h1 class="pg">Tableau de bord</h1>
-<p class="sub">Vue d'ensemble de l'activité Cognitive Care — Plan Canicule HAS</p>
+<p class="sub">Vue d'ensemble de l'activite Cognitive Care — Plan Canicule HAS</p>
 
-${hasAlerte?"<div class=\"abox ard\"><b>🚨 SIGNE D'ALERTE EN COURS</b><p>Un indicateur de surveillance est critique. Ouvrez immédiatement le logigramme d'alerte.</p><button class=\"btn brd\" style=\"margin-top:8px\" data-goto=\"canicule\" data-cstab=\"alerte\">Logigramme d'alerte</button></div>":""}
-${alerts>0?"<div class=\"abox aor\"><b>⚠️ "+alerts+" signal"+(alerts>1?"s":"")+" actif"+(alerts>1?"s":"")+"</b><p>Des signaux faibles nécessitent votre attention dans l'onglet Qualité.</p></div>":""}
+${hasAlerte?"<div class=\"abox ard\"><b>🚨 SIGNE D'ALERTE EN COURS</b><p>Un indicateur de surveillance est critique. Ouvrez immediatement le logigramme d'alerte.</p><button class=\"btn brd\" style=\"margin-top:8px\" data-goto=\"canicule\" data-cstab=\"alerte\">Logigramme d'alerte</button></div>":""}
+${alerts>0?"<div class=\"abox aor\"><b>⚠️ "+alerts+" signal"+(alerts>1?"s":"")+" actif"+(alerts>1?"s":"")+"</b><p>Des signaux faibles necessitent votre attention dans l'onglet Qualite.</p></div>":""}
 
 <div class="kgrid">
-  <div class="kpi"><div class="kv">"+nb+"</div><div class="kl">Bénéficiaires</div></div>
-  <div class="kpi ${crit>0?"kr":""}"><div class="kv" style="color:${crit>0?"var(--rd)":"var(--ink)"}">"+crit+"</div><div class="kl">IVT élevé / majeur</div></div>
-  <div class="kpi ${alerts>0?"ky":"kg"}"><div class="kv" style="color:${alerts>0?"var(--yw)":"var(--gn)"}">"+alerts+"</div><div class="kl">Signaux actifs</div></div>
-  <div class="kpi ${openEI>0?"kr":""}"><div class="kv" style="color:${openEI>0?"var(--rd)":"var(--ink)"}">"+openEI+"</div><div class="kl">EI en cours</div></div>
+  <div class="kpi"><div class="kv">${nb}</div><div class="kl">Beneficiaires</div></div>
+  <div class="kpi ${crit>0?"kr":""}"><div class="kv" style="color:${crit>0?"var(--rd)":"var(--ink)"}">${crit}</div><div class="kl">IVT eleve / majeur</div></div>
+  <div class="kpi ${alerts>0?"ky":"kg"}"><div class="kv" style="color:${alerts>0?"var(--yw)":"var(--gn)"}">${alerts}</div><div class="kl">Signaux actifs</div></div>
+  <div class="kpi ${openEI>0?"kr":""}"><div class="kv" style="color:${openEI>0?"var(--rd)":"var(--ink)"}">${openEI}</div><div class="kl">EI en cours</div></div>
 </div>
 
 <div class="card">
@@ -645,17 +645,17 @@ ${alerts>0?"<div class=\"abox aor\"><b>⚠️ "+alerts+" signal"+(alerts>1?"s":"
   <button class="card" style="cursor:pointer;text-align:left;padding:13px" data-goto="plus" data-pstab="tele">
     <div style="font-size:20px;margin-bottom:6px">⏱️</div>
     <b style="font-size:13px">Pointage</b>
-    <div style="font-size:11px;color:var(--ink2);margin-top:2px">${todayTele.length} entrée(s) aujourd'hui</div>
+    <div style="font-size:11px;color:var(--ink2);margin-top:2px">${todayTele.length} entree(s) aujourd'hui</div>
   </button>
   <button class="card" style="cursor:pointer;text-align:left;padding:13px" data-goto="qualite" data-qtab="signaux">
     <div style="font-size:20px;margin-bottom:6px">⚠️</div>
     <b style="font-size:13px">Signal faible</b>
-    <div style="font-size:11px;color:var(--ink2);margin-top:2px">Déclarer un signal</div>
+    <div style="font-size:11px;color:var(--ink2);margin-top:2px">Declarer un signal</div>
   </button>
   <button class="card" style="cursor:pointer;text-align:left;padding:13px" data-goto="canicule" data-cstab="alerte">
     <div style="font-size:20px;margin-bottom:6px">🚨</div>
     <b style="font-size:13px;color:var(--rd)">Alerte urgente</b>
-    <div style="font-size:11px;color:var(--ink2);margin-top:2px">Logigramme décisionnel</div>
+    <div style="font-size:11px;color:var(--ink2);margin-top:2px">Logigramme decisionnel</div>
   </button>
 </div>`;
 }
