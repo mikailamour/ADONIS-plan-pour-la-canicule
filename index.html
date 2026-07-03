@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Cognitive Care</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A4DB8">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cognitive Care">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cc:#1A4DB8;--cc2:#12368A;--ccs:#E8EEF8;--ccm:#C2D0F0;
+  --or:#E6610A;--ors:#FDEEE3;--orm:#F5C4A0;
+  --rd:#C8302A;--rds:#FBEAEA;
+  --gn:#1E7A4A;--gns:#E3F5EC;
+  --yw:#C07A00;--yws:#FEF4DC;
+  --pu:#6B3FA0;--pus:#F0EAF8;
+  --ink:#161D2B;--ink2:#4A5568;--ink3:#8A96A3;
+  --bg:#F3F6FD;--card:#fff;--line:#E2E8F0;
+  --r:16px;--rs:12px;
+  --sh:0 1px 3px rgba(26,77,184,.07),0 6px 20px -6px rgba(26,77,184,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+html,body{height:100%;background:var(--cc);}
+body{font-family:"Plus Jakarta Sans",-apple-system,sans-serif;color:var(--ink);display:flex;justify-content:center;}
+
+/* ── Shell ── */
+#shell{width:100%;max-width:480px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;}
+
+/* ── Splash ── */
+#splash{position:fixed;inset:0;z-index:200;background:var(--cc);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s;}
+#splash.out{opacity:0;pointer-events:none;}
+.sp-logo{width:100px;height:100px;background:#fff;border-radius:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 40px rgba(0,0,0,.2);margin-bottom:24px;}
+.sp-name{font-size:24px;font-weight:800;color:#fff;}
+.sp-sub{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.1em;text-transform:uppercase;margin-top:5px;}
+.sp-bar{width:44px;height:3px;background:rgba(255,255,255,.2);border-radius:99px;margin-top:44px;overflow:hidden;}
+.sp-bar::after{content:"";display:block;height:100%;background:#fff;animation:spload 1.5s ease forwards;}
+@keyframes spload{from{width:0}to{width:100%}}
+
+/* ── Auth ── */
+#auth-screen{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:14px;}
+#auth-screen.show{display:flex;}
+.auth-logo{width:72px;height:72px;background:var(--cc);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.auth-title{font-size:22px;font-weight:800;color:var(--cc);text-align:center;}
+.auth-sub{font-size:13px;color:var(--ink2);text-align:center;margin-bottom:4px;}
+.role-btn{width:100%;max-width:340px;background:#fff;border:2px solid var(--line);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.role-btn:active{border-color:var(--cc);box-shadow:0 0 0 3px var(--ccs);}
+.role-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;}
+.role-btn b{font-size:14px;display:block;}
+.role-btn small{font-size:11.5px;color:var(--ink2);}
+
+/* ── Header ── */
+header{background:var(--cc);color:#fff;padding:13px 15px 11px;position:sticky;top:0;z-index:30;box-shadow:0 4px 16px -8px rgba(26,77,184,.45);}
+.hrow{display:flex;align-items:center;gap:9px;}
+.hico{width:30px;height:30px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none;}
+.htit{flex:1;line-height:1.1;}
+.htit b{font-size:15px;font-weight:800;}
+.htit small{font-size:10px;color:rgba(255,255,255,.65);letter-spacing:.05em;text-transform:uppercase;display:block;}
+.hbadge{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;border:1.5px solid rgba(255,255,255,.25);font-size:11px;font-weight:700;cursor:pointer;}
+.hdot{width:7px;height:7px;border-radius:50%;}
+.hrole{background:rgba(255,255,255,.12);border-radius:999px;padding:3px 8px;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);margin-top:7px;display:inline-block;}
+
+/* ── Nav ── */
+nav{position:sticky;bottom:0;z-index:30;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:5px 0 calc(6px + env(safe-area-inset-bottom));}
+nav button{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;font-weight:700;color:var(--ink3);padding:5px 2px;font-family:"Plus Jakarta Sans";position:relative;}
+nav button.active{color:var(--cc);}
+nav button svg{width:19px;height:19px;}
+.nb{position:absolute;top:2px;right:50%;transform:translateX(8px);background:var(--rd);color:#fff;font-size:8.5px;font-weight:800;border-radius:999px;padding:1px 4px;min-width:14px;text-align:center;}
+
+/* ── Main ── */
+main{flex:1;overflow-y:auto;padding:13px 13px 100px;-webkit-overflow-scrolling:touch;}
+.view{display:none;animation:fi .2s ease;}
+.view.active{display:block;}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Components ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--sh);margin-bottom:12px;}
+h1.pg{font-size:19px;font-weight:800;color:var(--cc);margin-bottom:2px;}
+p.sub{font-size:12.5px;color:var(--ink2);margin-bottom:13px;line-height:1.4;}
+h2.sh{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.ey{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cc);margin-bottom:3px;}
+.divider{height:1px;background:var(--line);margin:10px 0;}
+.row{display:flex;align-items:center;gap:8px;}
+.rb{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+
+/* Buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;border:none;cursor:pointer;border-radius:var(--rs);font-weight:700;font-size:13.5px;font-family:"Plus Jakarta Sans";padding:11px 14px;width:100%;transition:opacity .1s;}
+.btn:active{opacity:.82;}
+.bcc{background:var(--cc);color:#fff;}
+.bor{background:var(--or);color:#fff;}
+.brd{background:var(--rd);color:#fff;}
+.bgh{background:var(--ccs);color:var(--cc);}
+.bout{background:#fff;color:var(--cc);border:1.5px solid var(--line);}
+.bsm{padding:7px 11px;font-size:12px;width:auto;border-radius:9px;}
+a.btn{text-decoration:none;}
+
+/* Pills */
+.pills{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:11px;scrollbar-width:none;}
+.pills::-webkit-scrollbar{display:none;}
+.pill{flex:none;padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;background:#fff;border:1.5px solid var(--line);color:var(--ink2);cursor:pointer;}
+.pill.on{background:var(--cc);border-color:var(--cc);color:#fff;}
+
+/* Inputs */
+input,select,textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:9px 11px;font-family:"Plus Jakarta Sans";font-size:13.5px;color:var(--ink);background:#fff;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--cc);box-shadow:0 0 0 3px var(--ccs);}
+textarea{resize:vertical;min-height:50px;}
+.fl{margin-bottom:10px;}
+.fl label{font-size:11px;font-weight:700;color:var(--ink2);display:block;margin-bottom:4px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* Seg */
+.seg{display:grid;gap:5px;}
+.seg.s2{grid-template-columns:1fr 1fr;}
+.seg.s3{grid-template-columns:1fr 1fr 1fr;}
+.seg button{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:7px 3px;font-size:10.5px;font-weight:700;color:var(--ink2);cursor:pointer;line-height:1.25;font-family:"Plus Jakarta Sans";}
+.seg button.a0{background:var(--gns);border-color:var(--gn);color:var(--gn);}
+.seg button.a1{background:var(--yws);border-color:var(--yw);color:var(--yw);}
+.seg button.a2{background:var(--rds);border-color:var(--rd);color:var(--rd);}
+
+/* Checkbox */
+.cr{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+.cr:last-child{border:none;}
+.cb{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;}
+.cb.ok{background:var(--gn);border-color:var(--gn);}
+.cb.warn{background:var(--yw);border-color:var(--yw);}
+.cb.alert{background:var(--rd);border-color:var(--rd);}
+.cb svg{width:12px;height:12px;stroke:#fff;display:none;}
+.cb.ok svg,.cb.warn svg,.cb.alert svg{display:block;}
+.cl{font-size:13px;line-height:1.4;flex:1;padding-top:1px;}
+.cr.dn .cl{color:var(--ink2);text-decoration:line-through;}
+
+/* Ring */
+.ring{border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:5px solid var(--line);background:#fff;flex:none;}
+.ring .rv{font-size:22px;font-weight:700;font-family:"IBM Plex Mono";line-height:1;}
+.ring .rl{font-size:9px;color:var(--ink3);}
+
+/* KPI */
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--rs);padding:13px 11px;}
+.kpi .kv{font-size:26px;font-weight:800;font-family:"IBM Plex Mono";line-height:1;}
+.kpi .kl{font-size:10.5px;font-weight:600;color:var(--ink2);margin-top:3px;}
+.kpi.kr{background:var(--rds);border-color:#f0c4c2;}
+.kpi.kg{background:var(--gns);border-color:#b8dfc9;}
+.kpi.ky{background:var(--yws);border-color:#f0dfa0;}
+
+/* Step flow */
+.step{border-left:4px solid var(--cc);background:var(--ccs);border-radius:11px;padding:11px 13px;}
+.step.sw{border-color:var(--or);background:var(--ors);}
+.step.sd{border-color:var(--rd);background:var(--rds);}
+.step b{display:block;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--cc);margin-bottom:2px;}
+.step.sw b{color:var(--or);}
+.step.sd b{color:var(--rd);}
+.step p{font-size:13px;line-height:1.4;}
+.arr{text-align:center;color:var(--or);font-size:13px;padding:3px 0;}
+
+/* Alert box */
+.abox{border-radius:var(--rs);padding:11px 13px;margin-bottom:11px;}
+.abox.acc{background:var(--ccs);border-left:4px solid var(--cc);}
+.abox.aor{background:var(--ors);border-left:4px solid var(--or);}
+.abox.ard{background:var(--rds);border-left:4px solid var(--rd);}
+.abox.agn{background:var(--gns);border-left:4px solid var(--gn);}
+.abox b{font-size:11.5px;font-weight:800;display:block;margin-bottom:3px;}
+.abox p{font-size:12.5px;line-height:1.4;}
+
+/* Accordion */
+details.acc{border:1px solid var(--line);border-radius:var(--rs);margin-bottom:8px;background:#fff;overflow:hidden;}
+details.acc summary{cursor:pointer;padding:12px 13px;font-weight:700;font-size:13px;color:var(--cc);display:flex;align-items:center;gap:7px;list-style:none;}
+details.acc summary::-webkit-details-marker{display:none;}
+details.acc summary .arr2{margin-left:auto;font-size:16px;color:var(--ink3);font-weight:400;transition:transform .2s;}
+details.acc[open] summary .arr2{transform:rotate(45deg);}
+details.acc .ab{padding:0 13px 13px;font-size:13px;line-height:1.5;}
+details.acc .ab ul{padding-left:16px;margin-top:5px;}
+details.acc .ab li{margin-bottom:4px;}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:10.5px;font-weight:700;}
+.bcc2{background:var(--ccs);color:var(--cc);}
+.bor2{background:var(--ors);color:var(--or);}
+.brd2{background:var(--rds);color:var(--rd);}
+.bgn2{background:var(--gns);color:var(--gn);}
+.byw2{background:var(--yws);color:var(--yw);}
+.bpu2{background:var(--pus);color:var(--pu);}
+
+/* Table */
+table.t{width:100%;border-collapse:collapse;font-size:12px;}
+table.t th{text-align:left;background:var(--cc);color:#fff;padding:7px 7px;font-size:10.5px;font-weight:700;}
+table.t td{padding:7px 7px;border-bottom:1px solid var(--line);vertical-align:top;}
+table.t tr:nth-child(even) td{background:var(--bg);}
+
+/* Benef card */
+.bc{background:#fff;border:1px solid var(--line);border-radius:var(--rs);padding:12px 13px;margin-bottom:9px;cursor:pointer;display:flex;align-items:center;gap:12px;}
+.bc:active{background:var(--ccs);}
+.bav{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;font-size:15px;font-weight:800;color:#fff;}
+.bc-info{flex:1;}
+.bc-info b{font-size:13.5px;font-weight:700;display:block;}
+.bc-info small{font-size:11px;color:var(--ink2);}
+
+/* Msg */
+.msg{border:1px dashed var(--line);border-radius:var(--rs);padding:11px 12px;background:var(--bg);font-size:12.5px;line-height:1.5;margin-bottom:8px;}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.mh b{font-size:12px;font-weight:800;color:var(--cc);}
+.cpbtn{display:flex;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--line);color:var(--cc);font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:"Plus Jakarta Sans";}
+
+/* Toast */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:8px 16px;border-radius:999px;font-size:12.5px;font-weight:600;box-shadow:var(--sh);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:80;white-space:nowrap;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+.icoBtn{background:none;border:none;cursor:pointer;color:var(--ink3);padding:3px;}
+
+/* Gauge */
+.gw{display:flex;flex-direction:column;align-items:center;padding:4px 0 0;}
+.gr{display:flex;flex-direction:column;align-items:center;margin-top:-48px;}
+.gv{font-size:28px;font-weight:800;font-family:"IBM Plex Mono";line-height:1;}
+.gl{font-size:11.5px;color:var(--ink2);margin-top:2px;text-align:center;max-width:200px;line-height:1.3;}
+.lgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px;}
+.lo{border-radius:9px;padding:8px 3px;text-align:center;cursor:pointer;border:1.5px solid var(--line);background:#fff;}
+.lo b{display:block;font-size:15px;font-weight:800;font-family:"IBM Plex Mono";}
+.lo span{display:block;font-size:8.5px;font-weight:700;color:var(--ink3);margin-top:1px;line-height:1.2;}
+
+/* Signature pad */
+#sigpad{border:2px dashed var(--line);border-radius:var(--rs);background:#fff;touch-action:none;cursor:crosshair;display:block;width:100%;height:140px;}
+#sigpad.signed{border-color:var(--gn);}
+
+/* Photo */
+.pz{border:2px dashed var(--line);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;background:var(--bg);}
+.pz input{display:none;}
+.pz img{max-width:100%;border-radius:9px;margin-top:8px;}
+
+/* Signal card */
+.sc{background:#fff;border:1px solid var(--line);border-radius:var(--rs);padding:12px 13px;margin-bottom:8px;border-left:4px solid var(--line);}
+.sc.s1{border-left-color:var(--yw);}
+.sc.s2{border-left-color:var(--or);}
+.sc.s3{border-left-color:var(--rd);}
+.sc b{font-size:13px;font-weight:700;}
+.sc small{font-size:11px;color:var(--ink2);display:block;margin-top:2px;}
+
+/* EI */
+.ei{background:#fff;border:1px solid var(--line);border-radius:var(--rs);padding:12px 13px;margin-bottom:8px;}
+.ei .eit{font-size:13px;font-weight:700;}
+.ei small{font-size:11px;color:var(--ink2);}
+
+/* Telecol */
+.tcol{background:#fff;border:1px solid var(--line);border-radius:var(--rs);padding:13px;margin-bottom:9px;}
+.tcol .tcn{font-size:14px;font-weight:800;}
+.tcol small{font-size:11.5px;color:var(--ink2);}
+.tst{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;margin-top:6px;}
+
+/* Empty */
+.empty{text-align:center;color:var(--ink2);font-size:13px;padding:18px 8px;}
+.empty b{display:block;color:var(--ink);font-size:13.5px;margin-bottom:3px;}
+</style>
+
+<!-- ══ Firebase Auth SDK ══ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBxBD6ZZQi6YmRkpndqHNu2DcsoDfwnBW4",
+  authDomain: "adonis-plan-canicule.firebaseapp.com",
+  projectId: "adonis-plan-canicule",
+  storageBucket: "adonis-plan-canicule.firebasestorage.app",
+  messagingSenderId: "446516429386",
+  appId: "1:446516429386:web:0920ef9cf8494253f5dcb3"
+};
+firebase.initializeApp(firebaseConfig);
+window._auth = firebase.auth();
+window._db = firebase.firestore();
+</script>
+
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-logo">
+    <svg width="62" height="62" viewBox="0 0 72 72" fill="none">
+      <path d="M36 6L62 18v24c0 15-26 26-26 26S10 57 10 42V18z" fill="#1A4DB8"/>
+      <polyline points="14,40 23,40 27,28 33,52 39,36 46,36 52,36 58,36" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="sp-name">Cognitive Care</div>
+  <div class="sp-sub">Plateforme SAAD · HAS</div>
+  <div class="sp-bar"></div>
+</div>
+
+<!-- AUTH — Firebase Email/Password -->
+<div id="auth-screen">
+  <div class="auth-logo">
+    <svg width="44" height="44" viewBox="0 0 72 72" fill="none">
+      <path d="M36 6L62 18v24c0 15-26 26-26 26S10 57 10 42V18z" fill="#fff"/>
+      <polyline points="14,40 23,40 27,28 33,52 39,36 46,36 52,36 58,36" stroke="#1A4DB8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="auth-title">Cognitive Care</div>
+  <div class="auth-sub">Connectez-vous à votre espace</div>
+
+  <!-- Formulaire de connexion -->
+  <div id="login-form" style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:12px;font-weight:700;color:var(--ink2)">Adresse e-mail</label>
+      <input type="email" id="auth-email" placeholder="votre@email.com" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:12px;font-weight:700;color:var(--ink2)">Mot de passe</label>
+      <input type="password" id="auth-pwd" placeholder="••••••••" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;">
+    </div>
+    <div id="auth-error" style="color:#C8302A;font-size:12.5px;font-weight:600;display:none;text-align:center;"></div>
+    <button id="btn-login" class="btn bcc" style="margin-top:4px;">Se connecter</button>
+    <button id="btn-show-register" style="background:none;border:none;cursor:pointer;color:var(--cc);font-size:13px;font-weight:600;padding:4px;">Créer un compte →</button>
+  </div>
+
+  <!-- Formulaire d'inscription -->
+  <div id="register-form" style="width:100%;max-width:340px;display:none;flex-direction:column;gap:10px;">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:12px;font-weight:700;color:var(--ink2)">Adresse e-mail</label>
+      <input type="email" id="reg-email" placeholder="votre@email.com" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:12px;font-weight:700;color:var(--ink2)">Mot de passe</label>
+      <input type="password" id="reg-pwd" placeholder="Minimum 6 caractères" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:12px;font-weight:700;color:var(--ink2)">Votre rôle</label>
+      <select id="reg-role" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px;font-family:inherit;">
+        <option value="auxiliaire">Auxiliaire de vie</option>
+        <option value="responsable">Responsable de secteur</option>
+        <option value="admin">Administrateur</option>
+        <option value="auditeur">Auditeur HAS</option>
+      </select>
+    </div>
+    <div id="reg-error" style="color:#C8302A;font-size:12.5px;font-weight:600;display:none;text-align:center;"></div>
+    <button id="btn-register" class="btn bcc" style="margin-top:4px;">Créer mon compte</button>
+    <button id="btn-show-login" style="background:none;border:none;cursor:pointer;color:var(--cc);font-size:13px;font-weight:600;padding:4px;">← Retour à la connexion</button>
+  </div>
+</div>
+
+<div id="shell" style="display:none">
+  <header id="appbar">
+    <div class="hrow">
+      <div class="hico">
+        <svg width="20" height="20" viewBox="0 0 72 72" fill="none">
+          <path d="M36 6L62 18v24c0 15-26 26-26 26S10 57 10 42V18z" fill="#1A4DB8"/>
+          <polyline points="14,40 23,40 27,28 33,52 39,36 46,36 52,36 58,36" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="htit"><b>Cognitive Care</b><small>Plateforme SAAD · HAS</small></div>
+      <div class="hbadge" id="hpill"><span class="hdot" id="hdot"></span><span id="htxt">N—</span></div>
+    </div>
+    <span class="hrole" id="hrole">—</span>
+  </header>
+  <main id="main"></main>
+  <nav id="tabbar">
+    <button data-tab="home" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12l9-8 9 8"/><path d="M5 11v9h14V11"/></svg>Accueil
+    </button>
+    <button data-tab="benef">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Bénéficiaires
+    </button>
+    <button data-tab="canicule">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v8"/><circle cx="12" cy="16" r="5"/><path d="M9 16h6"/></svg>Canicule
+    </button>
+    <button data-tab="qualite">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Qualité
+      <span class="nb" id="nb-qualite" style="display:none">0</span>
+    </button>
+    <button data-tab="plus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>Plus
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   COGNITIVE CARE — Plateforme SAAD complète
+   ============================================================ */
+
+// ── Constantes
+const LC={1:"#1E7A4A",2:"#C07A00",3:"#E6610A",4:"#C8302A"};
+const LS={1:"#E3F5EC",2:"#FEF4DC",3:"#FDEEE3",4:"#FBEAEA"};
+const LN={1:"Veille saisonnière",2:"Avertissement chaleur",3:"Alerte canicule",4:"Mobilisation maximale"};
+
+const GIR_LABELS=["GIR 1","GIR 2","GIR 3","GIR 4","GIR 5","GIR 6"];
+const PATHO_LIST=["Alzheimer / démence","Parkinson","AVC / séquelles","Insuffisance cardiaque","BPCO","Diabète","Insuffisance rénale","Cancer","Dépression","Anxiété","Épilepsie","Autre"];
+const CHECKLIST_ITEMS=[
+  {id:"hyd",label:"Hydratation proposée et accessible",cat:"Hydratation"},
+  {id:"bois",label:"Boisson consommée depuis le dernier passage",cat:"Hydratation"},
+  {id:"alim",label:"Alimentation correcte (repas pris)",cat:"Alimentation"},
+  {id:"temp",label:"Température ambiante vérifiée (< 28°C)",cat:"Environnement"},
+  {id:"vent",label:"Ventilation assurée (brasseur d'air ou fenêtre)",cat:"Environnement"},
+  {id:"vol",label:"Volets fermés côté soleil",cat:"Environnement"},
+  {id:"vet",label:"Vêtements légers, pas de surcouverture",cat:"Environnement"},
+  {id:"conf",label:"Absence de confusion ou propos incohérents",cat:"Surveillance"},
+  {id:"fat",label:"Niveau de fatigue habituel",cat:"Surveillance"},
+  {id:"vrt",label:"Absence de vertiges ou crampes",cat:"Surveillance"},
+  {id:"peau",label:"Peau fraîche et humide (pas chaude et sèche)",cat:"Surveillance"},
+  {id:"med",label:"Traitements pris, aucune automédication",cat:"Médicaments"},
+];
+const IVT_CR=[
+  {k:"age",l:"Âge",o:["Moins de 65 ans","65 à 80 ans","Plus de 80 ans"]},
+  {k:"aut",l:"Autonomie",o:["Autonome","Aide partielle","Dépendance"]},
+  {k:"pat",l:"Pathologie",o:["Aucune","Une identifiée","Plusieurs / traitement à risque"]},
+  {k:"iso",l:"Isolement",o:["Entourage quotidien","Entourage occasionnel","Isolement complet"]},
+  {k:"log",l:"Logement",o:["Climatisé / ventilé","Ventilation correcte","Mal ventilé / exposé"]},
+];
+const SURV_IND=[
+  {k:"con",l:"État de conscience",o:["Orienté, normal","Ralenti, fatigué","Confusion, absence de réponse"]},
+  {k:"tmp",l:"Température ressentie",o:["Normale","Chaude au toucher","Très chaude, peau sèche"]},
+  {k:"hyd",l:"Hydratation",o:["Boit normalement","Boit peu","Refuse de boire"]},
+  {k:"mob",l:"Mobilité",o:["Habituelle","Vertiges, faiblesse","Chute, convulsions"]},
+];
+const SIGNAL_TYPES=["Chute","Dénutrition","Déshydratation","Confusion nouvelle","Isolement social","Refus de soins","Aggravation pathologie","Autre"];
+const EI_TYPES=["Chute avec blessure","Erreur médicament","Comportement agressif","Fugue","Hospitalisation urgente","Décès","Autre"];
+const MESSAGES=[
+  {t:"Familles (niveau 3)",b:"Madame, Monsieur, en raison de l'alerte canicule, Cognitive Care renforce la surveillance de votre proche. Nous vous invitons à vous assurer que votre proche boive régulièrement et que le logement reste aéré aux heures fraîches. N'hésitez pas à nous contacter pour tout observation inhabituelle."},
+  {t:"Médecin traitant",b:"Docteur, dans le cadre du plan canicule Cognitive Care, nous vous informons que le bénéficiaire présente des signes nécessitant votre attention. La surveillance est renforcée. Merci de nous indiquer si une adaptation ou une visite vous semble nécessaire."},
+  {t:"Partenaires institutionnels",b:"Cognitive Care confirme la mobilisation de ses équipes auprès des bénéficiaires vulnérables sur votre territoire. Nous restons disponibles pour toute coordination dans le cadre du plan bleu communal."},
+];
+const AUDIT_QS=[
+  "La cartographie des bénéficiaires à risque est-elle à jour ?",
+  "La grille IVT est-elle renseignée pour tous les bénéficiaires à risque ?",
+  "L'ensemble des intervenants a-t-il suivi la formation annuelle ?",
+  "Le logigramme décisionnel est-il affiché et connu des équipes ?",
+  "Les fiches terrain sont-elles correctement renseignées et archivées ?",
+  "Les indicateurs qualité sont-ils suivis et analysés ?",
+  "La cellule de crise s'est-elle réunie conformément aux modalités prévues ?",
+  "Les événements indésirables ont-ils été analysés dans les délais ?",
+  "Les exports de preuves sont-ils disponibles pour l'auditeur ?",
+];
+const INDIC=[
+  {l:"Grilles IVT à jour",cible:"100 %",k:"ivt"},
+  {l:"Complétude fiches terrain",cible:"≥ 95 %",k:"fiches"},
+  {l:"Délai remontée alerte",cible:"≤ 30 min",k:"delai"},
+  {l:"Visites non réalisées",cible:"≤ 2 %",k:"visites"},
+  {l:"EI analysés dans les délais",cible:"100 %",k:"ei"},
+];
+const AVATARC=["#1A4DB8","#E6610A","#1E7A4A","#C8302A","#6B3FA0","#C07A00"];
+
+// ── State
+const S={
+  tab:"home",
+  role:null,
+  level:1,
+  benef:[],
+  benefView:null,
+  ivtList:[],
+  ivtForm:{id:null,name:"",age:0,aut:0,pat:0,iso:0,log:0},
+  visit:{date:td(),cl:{},surv:{},hyd:[],trans:[],obs:"",photo:null},
+  vtab:"cl",
+  signals:[],
+  ei:[],
+  telegest:[],
+  audit:{},
+  contacts:{coord:"",astreinte:"",medecin:""},
+  sigDrawing:false,sigCanvas:null,sigCtx:null,sigPoints:[],sigDone:false,
+  qualTab:"signaux",
+  caniculeTab:"vigilance",
+};
+
+function td(){return new Date().toISOString().slice(0,10);}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function hhmm(){const d=new Date();return d.getHours()+"h"+String(d.getMinutes()).padStart(2,"0");}
+function fdate(d){if(!d)return"—";const x=new Date(d);return x.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});}
+function avatarLetter(name){return(name||"?").charAt(0).toUpperCase();}
+function avatarColor(name){let h=0;for(let i=0;i<(name||"").length;i++)h=(h+name.charCodeAt(i))%AVATARC.length;return AVATARC[h];}
+
+// ── Storage LOCAL (pour données de session et config)
+function sg(k,fb){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):fb;}catch{return fb;}}
+function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+// ── Firestore helpers (données partagées entre appareils)
+function getUserId(){return window._auth.currentUser?window._auth.currentUser.uid:null;}
+
+async function fsSet(collection, docId, data){
+  try{
+    const uid=getUserId();if(!uid)return;
+    await window._db.collection("users").doc(uid).collection(collection).doc(docId).set(data,{merge:true});
+  }catch(e){console.warn("Firestore write error:",e);}
+}
+
+async function fsGet(collection, docId){
+  try{
+    const uid=getUserId();if(!uid)return null;
+    const doc=await window._db.collection("users").doc(uid).collection(collection).doc(docId).get();
+    return doc.exists?doc.data():null;
+  }catch(e){console.warn("Firestore read error:",e);return null;}
+}
+
+async function fsGetAll(collection){
+  try{
+    const uid=getUserId();if(!uid)return[];
+    const snap=await window._db.collection("users").doc(uid).collection(collection).get();
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.warn("Firestore list error:",e);return[];}
+}
+
+async function fsDelete(collection, docId){
+  try{
+    const uid=getUserId();if(!uid)return;
+    await window._db.collection("users").doc(uid).collection(collection).doc(docId).delete();
+  }catch(e){console.warn("Firestore delete error:",e);}
+}
+
+function fsListen(collection, callback){
+  const uid=getUserId();if(!uid)return()=>{};
+  return window._db.collection("users").doc(uid).collection(collection)
+    .onSnapshot(snap=>{
+      const items=snap.docs.map(d=>({id:d.id,...d.data()}));
+      callback(items);
+    },e=>console.warn("Firestore listen error:",e));
+}
+async function loadAll(){
+  S.role=sg("cc-role",null);
+  S.level=sg("cc-level",1);
+  // Charger depuis Firestore si connecté
+  const uid=getUserId();
+  if(uid){
+    try{
+      const [benef,ivt,signals,ei,telegest,audit,contacts]=await Promise.all([
+        fsGetAll("benef"),
+        fsGetAll("ivt"),
+        fsGetAll("signals"),
+        fsGetAll("ei"),
+        fsGetAll("telegest"),
+        fsGet("settings","audit"),
+        fsGet("settings","contacts"),
+      ]);
+      S.benef=benef||[];
+      S.ivtList=ivt||[];
+      S.signals=signals||[];
+      S.ei=ei||[];
+      S.telegest=telegest||[];
+      S.audit=audit||{};
+      S.contacts=contacts||{coord:"",astreinte:"",medecin:""};
+      // Visite du jour
+      const visit=await fsGet("visits",td());
+      if(visit){S.visit=visit;}
+      else{S.visit={date:td(),cl:{},surv:{},hyd:[],trans:[],obs:"",photo:null};}
+    }catch(e){
+      console.warn("Erreur chargement Firestore, fallback localStorage",e);
+      S.benef=sg("cc-benef",[]);S.ivtList=sg("cc-ivt",[]);
+      S.signals=sg("cc-signals",[]);S.ei=sg("cc-ei",[]);
+      S.telegest=sg("cc-telegest",[]);S.audit=sg("cc-audit",{});
+      S.contacts=sg("cc-contacts",{coord:"",astreinte:"",medecin:""});
+    }
+  } else {
+    S.benef=sg("cc-benef",[]);S.ivtList=sg("cc-ivt",[]);
+    S.signals=sg("cc-signals",[]);S.ei=sg("cc-ei",[]);
+    S.telegest=sg("cc-telegest",[]);S.audit=sg("cc-audit",{});
+    S.contacts=sg("cc-contacts",{coord:"",astreinte:"",medecin:""});
+    const v=sg("cc-visit",null);
+    if(v&&v.date===td())S.visit=v;
+    else S.visit={date:td(),cl:{},surv:{},hyd:[],trans:[],obs:"",photo:null};
+  }
+}
+function saveV(){
+  ss("cc-visit",S.visit);
+  fsSet("visits",td(),S.visit);
+}
+
+// ── IVT
+function ivtSc(i){return(i.age||0)+(i.aut||0)+(i.pat||0)+(i.iso||0)+(i.log||0);}
+function ivtInfo(s){
+  if(s<=2)return{l:"Vulnérabilité faible",c:LC[1],s:LS[1]};
+  if(s<=5)return{l:"Vulnérabilité modérée",c:LC[2],s:LS[2]};
+  if(s<=8)return{l:"Vulnérabilité élevée",c:LC[3],s:LS[3]};
+  return{l:"Vulnérabilité majeure",c:LC[4],s:LS[4]};
+}
+
+// ── Toast
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),1900);}
+function copyText(t){if(navigator.clipboard){navigator.clipboard.writeText(t).then(()=>toast("Copié !")).catch(()=>toast("Copie indisponible"));}else toast("Copie indisponible");}
+
+// ── Header
+function renderHeader(){
+  document.getElementById("hdot").style.background=LC[S.level];
+  document.getElementById("htxt").textContent="N"+S.level;
+  const rl={admin:"⚙️ Administrateur",responsable:"📋 Responsable",auxiliaire:"👤 Auxiliaire",auditeur:"🔍 Auditeur"};
+  document.getElementById("hrole").textContent=rl[S.role]||"—";
+  // Badge qualité
+  const alerts=S.signals.filter(s=>s.niveau>=2).length+S.ei.filter(e=>!e.closed).length;
+  const nb=document.getElementById("nb-qualite");
+  if(alerts>0){nb.style.display="block";nb.textContent=alerts;}else nb.style.display="none";
+}
+
+// ── Gauge
+function gaugeSVG(){
+  const cx=130,cy=116,r=90;
+  const arc=(s,e)=>{const a=d=>[(cx+r*Math.cos((d-90)*Math.PI/180)).toFixed(1),(cy+r*Math.sin((d-90)*Math.PI/180)).toFixed(1)];const[x1,y1]=a(s);const[x2,y2]=a(e);return"M"+x1+" "+y1+" A"+r+" "+r+" 0 0 1 "+x2+" "+y2;};
+  const segs=[[-90,-45,1],[-45,0,2],[0,45,3],[45,90,4]];
+  const arcs=segs.map(([s,e,l])=>"<path d=\""+arc(s,e)+"\" stroke=\""+LC[l]+"\" stroke-width=\"14\" fill=\"none\" stroke-linecap=\"round\" opacity=\""+(S.level===l?1:0.25)+"\"/>").join("");
+  const ca={1:-67.5,2:-22.5,3:22.5,4:67.5};
+  const na=(ca[S.level]-90)*Math.PI/180;
+  return"<svg width=\"260\" height=\"136\" viewBox=\"0 0 260 136\">"+arcs+"<g style=\"transform:rotate("+ca[S.level]+"deg);transform-origin:"+cx+"px "+cy+"px\"><line x1=\""+cx+"\" y1=\""+cy+"\" x2=\""+cx+"\" y2=\""+(cy-r+18)+"\" stroke=\""+LC[S.level]+"\" stroke-width=\"3.5\" stroke-linecap=\"round\"/><circle cx=\""+cx+"\" cy=\""+cy+"\" r=\"6.5\" fill=\""+LC[S.level]+"\"/><circle cx=\""+cx+"\" cy=\""+cy+"\" r=\"2.5\" fill=\"#fff\"/></g></svg>";
+}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+
+// ── HOME
+function viewHome(){
+  const nb=S.benef.length;
+  const crit=S.ivtList.filter(i=>ivtSc(i)>=6).length;
+  const alerts=S.signals.filter(s=>s.niveau>=2&&!s.closed).length;
+  const openEI=S.ei.filter(e=>!e.closed).length;
+  const todayTele=S.telegest.filter(t=>t.date===td());
+  const hasAlerte=Object.values(S.visit.surv||{}).some(v=>v===2);
+  return`
+<div class="ey">${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</div>
+<h1 class="pg">Tableau de bord</h1>
+<p class="sub">Vue d'ensemble de l'activite Cognitive Care — Plan Canicule HAS</p>
+
+${hasAlerte?"<div class=\"abox ard\"><b>🚨 SIGNE D'ALERTE EN COURS</b><p>Un indicateur de surveillance est critique. Ouvrez immediatement le logigramme d'alerte.</p><button class=\"btn brd\" style=\"margin-top:8px\" data-goto=\"canicule\" data-cstab=\"alerte\">Logigramme d'alerte</button></div>":""}
+${alerts>0?"<div class=\"abox aor\"><b>⚠️ "+alerts+" signal"+(alerts>1?"s":"")+" actif"+(alerts>1?"s":"")+"</b><p>Des signaux faibles necessitent votre attention dans l'onglet Qualite.</p></div>":""}
+
+<div class="kgrid">
+  <div class="kpi"><div class="kv">${nb}</div><div class="kl">Beneficiaires</div></div>
+  <div class="kpi ${crit>0?"kr":""}"><div class="kv" style="color:${crit>0?"var(--rd)":"var(--ink)"}">${crit}</div><div class="kl">IVT eleve / majeur</div></div>
+  <div class="kpi ${alerts>0?"ky":"kg"}"><div class="kv" style="color:${alerts>0?"var(--yw)":"var(--gn)"}">${alerts}</div><div class="kl">Signaux actifs</div></div>
+  <div class="kpi ${openEI>0?"kr":""}"><div class="kv" style="color:${openEI>0?"var(--rd)":"var(--ink)"}">${openEI}</div><div class="kl">EI en cours</div></div>
+</div>
+
+<div class="card">
+  <div class="gw">${gaugeSVG()}<div class="gr"><div class="gv" style="color:${LC[S.level]}">N${S.level}</div><div class="gl">${LN[S.level]}</div></div></div>
+  <div class="lgrid">
+    ${[1,2,3,4].map(l=>"<div class=\"lo\" data-sl=\""+l+"\" style=\"border-color:"+(S.level===l?LC[l]:"var(--line)")+";background:"+(S.level===l?LS[l]:"#fff")+"\"><b style=\"color:"+LC[l]+"\">"+l+"</b><span>"+["Veille","Avertiss.","Alerte","Mobilisation"][l-1]+"</span></div>").join("")}
+  </div>
+</div>
+
+<h2 class="sh">Actions rapides</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;">
+  <button class="card" style="cursor:pointer;text-align:left;padding:13px" data-goto="canicule" data-cstab="visite">
+    <div style="font-size:20px;margin-bottom:6px">📋</div>
+    <b style="font-size:13px">Fiche de visite</b>
+    <div style="font-size:11px;color:var(--ink2);margin-top:2px">Check-list du jour</div>
+  </button>
+  <button class="card" style="cursor:pointer;text-align:left;padding:13px" data-goto="plus" data-pstab="tele">
+    <div style="font-size:20px;margin-bottom:6px">⏱️</div>
+    <b style="font-size:13px">Pointage</b>
+    <div style="font-size:11px;color:var(--ink2);margin-top:2px">${todayTele.length} entree(s) aujourd'hui</div>
+  </button>
+  <button class="card" style="cursor:pointer;text-align:left;padding:13px" data-goto="qualite" data-qtab="signaux">
+    <div style="font-size:20px;margin-bottom:6px">⚠️</div>
+    <b style="font-size:13px">Signal faible</b>
+    <div style="font-size:11px;color:var(--ink2);margin-top:2px">Declarer un signal</div>
+  </button>
+  <button class="card" style="cursor:pointer;text-align:left;padding:13px" data-goto="canicule" data-cstab="alerte">
+    <div style="font-size:20px;margin-bottom:6px">🚨</div>
+    <b style="font-size:13px;color:var(--rd)">Alerte urgente</b>
+    <div style="font-size:11px;color:var(--ink2);margin-top:2px">Logigramme decisionnel</div>
+  </button>
+</div>`;
+}
+
+// ── BÉNÉFICIAIRES
+function viewBenef(){
+  if(S.benefView) return viewBenefDetail();
+  return`
+<h1 class="pg">Bénéficiaires</h1>
+<p class="sub">Gestion des bénéficiaires accompagnés par Cognitive Care.</p>
+<button class="btn bcc" style="margin-bottom:13px" id="newBenef">+ Nouveau bénéficiaire</button>
+${S.benef.length===0?"<div class=\"empty\"><b>Aucun bénéficiaire</b>Ajoutez un premier bénéficiaire ci-dessus.</div>":
+S.benef.map(b=>`<div class="bc" data-viewb="${b.id}">
+  <div class="bav" style="background:${avatarColor(b.nom)}">${avatarLetter(b.nom)}</div>
+  <div class="bc-info">
+    <b>${esc(b.prenom||"")} ${esc(b.nom||"")}</b>
+    <small>${b.gir||"GIR non renseigné"} · ${b.age||"?"} ans · ${b.adresse||"Adresse non renseignée"}</small>
+    <div style="margin-top:4px">
+      ${b.pathologies&&b.pathologies.length>0?"<span class=\"badge brd2\">"+b.pathologies.length+" patho.</span> ":""} 
+      ${ivtList_forBenef(b.id)?"<span class=\"badge \"style=\"background:"+ivtInfo(ivtSc(ivtList_forBenef(b.id))).c+"20;color:"+ivtInfo(ivtSc(ivtList_forBenef(b.id))).c+"\">IVT "+ivtSc(ivtList_forBenef(b.id))+"/10</span>":""}
+    </div>
+  </div>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+</div>`).join("")}`;
+}
+
+function ivtList_forBenef(bid){return S.ivtList.find(i=>i.benefId===bid)||null;}
+
+function formBenef(b){
+  const eb=b||{};
+  return`
+<div class="card">
+  <h2 class="sh">${b?"Modifier":"Nouveau"} bénéficiaire</h2>
+  <div class="fg">
+    <div class="fl"><label>Prénom</label><input id="bPrenom" value="${esc(eb.prenom||"")}" placeholder="Prénom"></div>
+    <div class="fl"><label>Nom</label><input id="bNom" value="${esc(eb.nom||"")}" placeholder="Nom"></div>
+  </div>
+  <div class="fg">
+    <div class="fl"><label>Date de naissance</label><input type="date" id="bDdn" value="${eb.ddn||""}"></div>
+    <div class="fl"><label>Âge</label><input type="number" id="bAge" value="${eb.age||""}" placeholder="Ans"></div>
+  </div>
+  <div class="fl"><label>Adresse</label><input id="bAdresse" value="${esc(eb.adresse||"")}" placeholder="Adresse complète"></div>
+  <div class="fl"><label>Téléphone</label><input id="bTel" value="${esc(eb.tel||"")}" placeholder="06 ..."></div>
+  <div class="fl"><label>Personne de confiance</label><input id="bConfiance" value="${esc(eb.confiance||"")}" placeholder="Nom et téléphone"></div>
+  <div class="fl"><label>GIR</label>
+    <select id="bGir"><option value="">Sélectionner</option>${GIR_LABELS.map(g=>"<option"+(eb.gir===g?" selected":"")+">"+g+"</option>").join("")}</select>
+  </div>
+  <div class="fl"><label>APA / PCH</label>
+    <select id="bApa"><option value="">Sélectionner</option><option${eb.apa==="APA"?" selected":""}>APA</option><option${eb.apa==="PCH"?" selected":""}>PCH</option><option${eb.apa==="Aucune"?" selected":""}>Aucune</option></select>
+  </div>
+  <div class="fl"><label>Pathologies (sélection multiple)</label>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px" id="pathoWrap">
+      ${PATHO_LIST.map(p=>{const sel=eb.pathologies&&eb.pathologies.includes(p);return"<div class=\"pill"+(sel?" on":"")+"\" data-patho=\""+esc(p)+"\" style=\"font-size:11px;padding:5px 10px\">"+esc(p)+"</div>";}).join("")}
+    </div>
+  </div>
+  <div class="fl"><label>Traitements</label><textarea id="bTraite" rows="2" placeholder="Médicaments, posologie…">${esc(eb.traitements||"")}</textarea></div>
+  <div class="fl"><label>Projet personnalisé</label><textarea id="bProjet" rows="3" placeholder="Objectifs, préférences, habitudes de vie…">${esc(eb.projet||"")}</textarea></div>
+  <div class="fl"><label>Intervenants affectés</label><textarea id="bInter" rows="2" placeholder="Noms des auxiliaires">${esc(eb.intervenants||"")}</textarea></div>
+  <div class="fl"><label>Isolement social</label>
+    <select id="bIsol"><option value="">Sélectionner</option><option${eb.isolement==="Entourage quotidien"?" selected":""}>Entourage quotidien</option><option${eb.isolement==="Entourage occasionnel"?" selected":""}>Entourage occasionnel</option><option${eb.isolement==="Isolement complet"?" selected":""}>Isolement complet</option></select>
+  </div>
+  <button class="btn bcc" id="saveBenef" data-bid="${eb.id||""}">${b?"Enregistrer les modifications":"Créer le bénéficiaire"}</button>
+  ${b?"<button class=\"btn bout\" style=\"margin-top:8px\" id=\"cancelBenef\">Annuler</button>":""}
+</div>`;
+}
+
+function viewBenefDetail(){
+  const b=S.benef.find(x=>x.id===S.benefView);
+  if(!b)return"<div class='empty'><b>Bénéficiaire introuvable</b></div>";
+  const ivtItem=ivtList_forBenef(b.id);
+  const ivtS=ivtItem?ivtSc(ivtItem):null;
+  const ivtI=ivtS!==null?ivtInfo(ivtS):null;
+  return`
+<button class="btn bout bsm" style="margin-bottom:12px;width:auto" data-goto="benef"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> Retour</button>
+<div class="card">
+  <div class="row" style="margin-bottom:12px">
+    <div class="bav" style="background:${avatarColor(b.nom)};width:52px;height:52px;font-size:20px">${avatarLetter(b.nom)}</div>
+    <div style="flex:1">
+      <div style="font-size:18px;font-weight:800">${esc(b.prenom||"")} ${esc(b.nom||"")}</div>
+      <div style="font-size:12px;color:var(--ink2)">${b.age||"?"} ans · ${b.gir||"—"} · ${b.apa||"—"}</div>
+    </div>
+    <button class="btn bout bsm" id="editBenef" data-bid="${b.id}">✏️ Modifier</button>
+  </div>
+  <div class="divider"></div>
+  <div class="rb" style="margin-bottom:6px"><span style="font-size:12px;color:var(--ink2)">📍 ${esc(b.adresse||"Adresse non renseignée")}</span></div>
+  <div class="rb" style="margin-bottom:6px"><span style="font-size:12px;color:var(--ink2)">📞 ${esc(b.tel||"—")}</span></div>
+  <div class="rb"><span style="font-size:12px;color:var(--ink2)">🤝 Confiance : ${esc(b.confiance||"—")}</span></div>
+</div>
+
+${ivtI?"<div class=\"card\" style=\"border-left:4px solid "+ivtI.c+"\"><div class=\"rb\"><div><div style=\"font-weight:800;color:"+ivtI.c+"\">"+ivtI.l+"</div><div style=\"font-size:11.5px;color:var(--ink2)\">Score IVT : "+ivtS+"/10</div></div><div class=\"ring\" style=\"width:52px;height:52px;border-color:"+ivtI.c+"\"><span class=\"rv\" style=\"font-size:18px;color:"+ivtI.c+"\">"+ivtS+"</span><span class=\"rl\">/10</span></div></div></div>":""}
+
+<details class="acc"><summary><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>Pathologies<span class="arr2">+</span></summary><div class="ab">${b.pathologies&&b.pathologies.length>0?b.pathologies.map(p=>"<span class=\"badge brd2\" style=\"margin:2px\">"+esc(p)+"</span>").join(""):"<span style=\"color:var(--ink2)\">Aucune renseignée</span>"}<div style="margin-top:10px"><b style="font-size:12px">Traitements :</b><p>${esc(b.traitements||"Non renseigné")}</p></div></div></details>
+<details class="acc"><summary><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>Projet personnalisé<span class="arr2">+</span></summary><div class="ab">${esc(b.projet||"Non renseigné")}</div></details>
+<details class="acc"><summary><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Intervenants<span class="arr2">+</span></summary><div class="ab">${esc(b.intervenants||"Non renseigné")}</div></details>
+
+<div class="card">
+  <h2 class="sh">Signaux liés à ce bénéficiaire</h2>
+  ${S.signals.filter(s=>s.benefId===b.id).length===0?"<div class=\"empty\"><b>Aucun signal enregistré</b></div>":
+  S.signals.filter(s=>s.benefId===b.id).slice(-3).reverse().map(s=>"<div class=\"sc s"+s.niveau+"\"><b>"+esc(s.type)+"</b><small>"+fdate(s.date)+" · Niveau "+s.niveau+"</small></div>").join("")}
+</div>`;
+}
+
+// ── CANICULE
+function viewCanicule(){
+  const t=S.caniculeTab;
+  const tabs=[["vigilance","Vigilance"],["ivt","IVT"],["visite","Fiche visite"],["alerte","Alerte"]];
+  return`
+<h1 class="pg">Plan Canicule</h1>
+<p class="sub">Gestion opérationnelle de la période de fortes chaleurs — Pack Excellence HAS</p>
+<div class="pills">${tabs.map(([k,l])=>"<div class=\"pill "+(t===k?"on":"")+"\" data-cstab=\""+k+"\">"+l+"</div>").join("")}</div>
+${t==="vigilance"?cVigilance():t==="ivt"?cIVT():t==="visite"?cVisite():cAlerte()}`;
+}
+
+function cVigilance(){
+  return`<div class="card">
+  <div class="gw">${gaugeSVG()}<div class="gr"><div class="gv" style="color:${LC[S.level]}">N${S.level}</div><div class="gl">${LN[S.level]}<br><small style="font-size:10.5px">${["Vigilance standard. Hydratation à chaque passage.","Vérifier grille IVT. Contrôle systématique de l'hydratation.","Horaires adaptés. Surveillance renforcée. Compte rendu obligatoire.","Prioriser bénéficiaires IVT élevé. Passages biquotidiens si nécessaire."][S.level-1]}</small></div></div></div>
+  <div class="lgrid">${[1,2,3,4].map(l=>"<div class=\"lo\" data-sl=\""+l+"\" style=\"border-color:"+(S.level===l?LC[l]:"var(--line)")+";background:"+(S.level===l?LS[l]:"#fff")+"\"><b style=\"color:"+LC[l]+"\">"+l+"</b><span>"+["Veille","Avertiss.","Alerte","Mobilisation"][l-1]+"</span></div>").join("")}</div>
+</div>
+<div class="card">
+  <h2 class="sh">Synthèse des consignes par niveau</h2>
+  <table class="t"><thead><tr><th>Niveau</th><th>Avant visite</th><th>Pendant</th><th>Après</th></tr></thead><tbody>
+    <tr><td><b style="color:${LC[1]}">N1</b></td><td>Standard</td><td>Rappel hydratation</td><td>Transmission habituelle</td></tr>
+    <tr><td><b style="color:${LC[2]}">N2</b></td><td>Vérifier IVT</td><td>Contrôle systématique</td><td>Signalement si doute</td></tr>
+    <tr><td><b style="color:${LC[3]}">N3</b></td><td>Horaires frais</td><td>Surveillance renforcée</td><td>CR obligatoire coordinateur</td></tr>
+    <tr><td><b style="color:${LC[4]}">N4</b></td><td>Prioriser IVT ≥6</td><td>Passage biquotidien</td><td>Point quotidien cellule crise</td></tr>
+  </tbody></table>
+</div>`;
+}
+
+function cIVT(){
+  const f=S.ivtForm;const sc=ivtSc(f);const inf=ivtInfo(sc);
+  const sorted=[...S.ivtList].sort((a,b)=>ivtSc(b)-ivtSc(a));
+  return`<div class="card">
+  <div class="rb" style="margin-bottom:10px"><h2 class="sh" style="margin:0">${f.id?"Modifier":"Nouveau"} bénéficiaire IVT</h2>${f.id?"<button class=\"btn bout bsm\" id=\"ivtCancel\">Annuler</button>":""}</div>
+  <div class="fl"><label>Nom / repère</label><input id="ivtName" placeholder="Ex. Mme R. — secteur Nord" value="${esc(f.name)}">
+  ${S.benef.length>0?"<select id=\"ivtBenef\" style=\"margin-top:6px\"><option value=\"\">Lier à un bénéficiaire...</option>"+S.benef.map(b=>"<option value=\""+b.id+"\""+( f.benefId===b.id?" selected":"")+">"+esc(b.prenom||"")+" "+esc(b.nom||"")+"</option>").join("")+"</select>":""}
+  </div>
+  ${IVT_CR.map(c=>"<div class=\"fl\"><label>"+c.l+"</label><div class=\"seg s3\" data-ck=\""+c.k+"\">"+c.o.map((o,i)=>"<button class=\""+(f[c.k]===i?"a"+i:"")+"\" data-val=\""+i+"\">"+o+"</button>").join("")+"</div></div>").join("")}
+  <div class="row" style="margin:11px 0">
+    <div class="ring" style="width:72px;height:72px;border-color:${inf.c}"><span class="rv" style="color:${inf.c}">${sc}</span><span class="rl">/10</span></div>
+    <div style="flex:1;padding-left:11px"><div style="font-weight:800;color:${inf.c};font-size:13px">${inf.l}</div><div style="font-size:11.5px;color:var(--ink2);margin-top:3px">${sc<=2?"Visite habituelle":sc<=5?"Contrôle hydratation à chaque passage":sc<=8?"Passage renforcé dès le niveau 3":"Surveillance rapprochée quotidienne dès le niveau 2"}</div></div>
+  </div>
+  <button class="btn bcc" id="ivtSave">${f.id?"Enregistrer":"Ajouter"}</button>
+</div>
+<h2 class="sh">Bénéficiaires (${sorted.length})</h2>
+<div class="card" style="padding:6px 13px">
+${sorted.length===0?"<div class=\"empty\"><b>Aucun bénéficiaire</b>Ajoutez une fiche ci-dessus.</div>":
+sorted.map(item=>{const s=ivtSc(item);const inf2=ivtInfo(s);return"<div class=\"cr\" style=\"align-items:center\"><div class=\"ring\" style=\"width:44px;height:44px;border-width:4px;border-color:"+inf2.c+"\"><span class=\"rv\" style=\"font-size:14px;color:"+inf2.c+"\">"+s+"</span></div><div style=\"flex:1;padding-left:6px\" data-editivt=\""+item.id+"\"><b style=\"font-size:13px\">"+esc(item.name||"Sans nom")+"</b><div style=\"font-size:11px;color:"+inf2.c+";font-weight:700\">"+inf2.l+"</div></div><button class=\"icoBtn\" data-delivt=\""+item.id+"\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 6h18\"/><path d=\"M8 6V4h8v2\"/><path d=\"M6 6l1 14h10l1-14\"/></svg></button></div>";}).join("")}
+</div>`;
+}
+
+function cVisite(){
+  const t=S.vtab;
+  const cats=[["cl","Check-list"],["surv","Surveillance"],["hyd","Hydratation"],["trans","Transmission"]];
+  return"<div class=\"pills\">"+cats.map(([k,l])=>"<div class=\"pill "+(t===k?"on":"")+"\" data-vtab=\""+k+"\">"+l+"</div>").join("")+"</div>"+
+  (t==="cl"?vCL():t==="surv"?vSurv():t==="hyd"?vHyd():vTrans());
+}
+
+function vCL(){
+  const cats=[...new Set(CHECKLIST_ITEMS.map(i=>i.cat))];
+  const done=Object.keys(S.visit.cl||{}).length;
+  let html="<div class=\"rb\" style=\"margin-bottom:10px\"><span style=\"font-size:13px;font-weight:700\">Progression</span><span class=\"badge bcc2\">"+(done)+" / "+CHECKLIST_ITEMS.length+"</span></div>";
+  for(const cat of cats){
+    html+="<div class=\"card\"><h2 class=\"sh\">"+cat+"</h2>";
+    html+=CHECKLIST_ITEMS.filter(i=>i.cat===cat).map(i=>"<div class=\"cr "+(S.visit.cl[i.id]?"dn":"")+"\"><div class=\"cb "+(S.visit.cl[i.id]?"ok":"")+"\" data-chk=\""+i.id+"\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13l4 4L19 7\"/></svg></div><span class=\"cl\">"+i.label+"</span></div>").join("");
+    html+="</div>";
+  }
+  html+="<div class=\"card\"><h2 class=\"sh\">Observation & photo</h2><div class=\"fl\"><label>Notes libres</label><textarea id=\"obsGen\" rows=\"3\" placeholder=\"Observations générales de la visite…\">"+(S.visit.obs||"")+"</textarea></div><div class=\"pz\" id=\"pz\"><input type=\"file\" id=\"pzInput\" accept=\"image/*\" capture=\"environment\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"var(--cc)\" stroke-width=\"2\"><rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M16 7l-2-3H10L8 7\"/><circle cx=\"12\" cy=\"13\" r=\"3\"/></svg><p style=\"font-size:11.5px;color:var(--ink2);margin-top:5px\">Ajouter une photo (consentement requis)</p>"+(S.visit.photo?"<img src=\""+S.visit.photo+"\" alt=\"\">":"")+"</div><button class=\"btn bcc\" style=\"margin-top:10px\" id=\"saveObs\">Enregistrer l'observation</button></div>";
+  return html;
+}
+
+function vSurv(){
+  const hasA=Object.values(S.visit.surv||{}).some(v=>v===2);
+  let html=hasA?"<div class=\"abox ard\"><b>🚨 Signe d'alerte</b><p>Au moins un indicateur est critique. Appliquez immédiatement le logigramme.</p><button class=\"btn brd\" style=\"margin-top:8px\" data-cstab=\"alerte\">Logigramme d'alerte</button></div>":"";
+  html+="<div class=\"card\"><h2 class=\"sh\">Grille de surveillance</h2>";
+  html+=SURV_IND.map(ind=>"<div class=\"fl\"><label>"+ind.l+"</label><div class=\"seg s3\" data-sk=\""+ind.k+"\">"+ind.o.map((o,i)=>"<button class=\""+(S.visit.surv[ind.k]===i?"a"+i:"")+"\" data-val=\""+i+"\">"+o+"</button>").join("")+"</div></div>").join("");
+  html+="<p style=\"font-size:11px;color:var(--ink2);margin-top:3px\">Toute case rouge déclenche le logigramme d'alerte.</p></div>";
+  return html;
+}
+
+function vHyd(){
+  const rows=S.visit.hyd||[];
+  const total=rows.reduce((s,r)=>s+(parseInt(r.q)||0),0);
+  return"<div class=\"card\"><h2 class=\"sh\">Ajouter une prise</h2><div class=\"fg\"><div class=\"fl\"><label>Heure</label><input id=\"hH\" value=\""+hhmm()+"\"></div><div class=\"fl\"><label>Boisson</label><select id=\"hB\"><option>Eau</option><option>Eau gazeuse</option><option>Tisane / thé</option><option>Soupe</option><option>Jus</option><option>Autre</option></select></div></div><div class=\"fg\"><div class=\"fl\"><label>Quantité (ml)</label><input type=\"number\" id=\"hQ\" placeholder=\"150\"></div><div class=\"fl\"><label>Observation</label><input id=\"hO\" placeholder=\"Notes…\"></div></div><button class=\"btn bcc\" id=\"hydAdd\">Ajouter</button></div>"
+  +"<div class=\"card\"><div class=\"rb\" style=\"margin-bottom:8px\"><h2 class=\"sh\" style=\"margin:0\">Suivi du jour</h2><span class=\"badge bcc2\">"+total+" ml</span></div>"
+  +(rows.length===0?"<div class=\"empty\"><b>Aucune prise</b>Objectif : 1,5 L / jour</div>":"<table class=\"t\"><thead><tr><th>Heure</th><th>Boisson</th><th>Qté</th><th></th></tr></thead><tbody>"+rows.map(r=>"<tr><td>"+esc(r.h)+"</td><td>"+esc(r.b)+"</td><td>"+r.q+" ml</td><td><button class=\"icoBtn\" data-dh=\""+r.id+"\">✕</button></td></tr>").join("")+"</tbody></table>")
+  +"</div>";
+}
+
+function vTrans(){
+  const rows=S.visit.trans||[];
+  return"<div class=\"card\"><h2 class=\"sh\">Nouvelle transmission</h2><div class=\"fl\"><label>Bénéficiaire</label><input id=\"tB\" placeholder=\"Nom / repère\"></div><div class=\"fl\"><label>Observation</label><textarea id=\"tO\" rows=\"2\" placeholder=\"Ce qui a été constaté…\"></textarea></div><div class=\"fl\"><label>Action engagée</label><textarea id=\"tA\" rows=\"2\" placeholder=\"Ce qui a été décidé…\"></textarea></div><div class=\"fl\"><label>Destinataire</label><input id=\"tD\" placeholder=\"Coordinateur, médecin, famille…\"></div><button class=\"btn bcc\" id=\"trAdd\">Transmettre</button></div>"
+  +"<div class=\"card\"><h2 class=\"sh\">Transmissions du jour ("+rows.length+")</h2>"
+  +(rows.length===0?"<div class=\"empty\"><b>Aucune transmission</b></div>":rows.slice().reverse().map(r=>"<div class=\"msg\"><div class=\"mh\"><b>"+esc(r.b||"Bénéficiaire")+" · "+r.h+"</b><button class=\"icoBtn\" data-dt=\""+r.id+"\">✕</button></div><div><b>Observation :</b> "+esc(r.o)+"</div><div style=\"color:var(--ink2);font-size:11px;margin-top:2px\">→ "+esc(r.d||"—")+"</div></div>").join(""))
+  +"</div>";
+}
+
+function cAlerte(){
+  const c=S.contacts;
+  return"<div class=\"abox ard\"><b>RÈGLE D'OR</b><p>L'auxiliaire n'est jamais seule décisionnaire. En cas d'urgence vitale, le 15 est composé sans attendre.</p></div>"
+  +"<div class=\"step\"><b>ÉTAPE 1 — DÉTECTION</b><p>Confusion, fièvre, malaise, propos incohérents, absence de réponse, déshydratation sévère.</p></div><div class=\"arr\">▼</div>"
+  +"<div class=\"step sw\"><b>ÉTAPE 2 — MISE EN SÉCURITÉ</b><p>Installer au frais. Faire boire si conscient et peut avaler. Ne jamais laisser seule une personne confuse.</p></div><div class=\"arr\">▼</div>"
+  +"<div class=\"step\"><b>ÉTAPE 3 — APPEL COORDINATEUR</b><p>Décrire l'état observé à l'aide de la fiche de surveillance.</p>"+(c.coord?"<a class=\"btn bcc\" style=\"margin-top:9px\" href=\"tel:"+esc(c.coord)+"\">📞 Coordinateur · "+esc(c.coord)+"</a>":"<button class=\"btn bout\" style=\"margin-top:9px\" data-goto=\"plus\" data-pstab=\"contacts\">Renseigner le numéro</button>")+"</div><div class=\"arr\">▼</div>"
+  +"<div class=\"step\"><b>ÉTAPE 4 — ÉVALUATION</b><p>Signes légers → surveillance renforcée + information médecin."+(c.medecin?" <a href=\"tel:"+esc(c.medecin)+"\" style=\"color:var(--cc);font-weight:700\">📞 "+esc(c.medecin)+"</a>":"")+"</p></div><div class=\"arr\">▼</div>"
+  +"<div class=\"step sd\"><b>ÉTAPE 5 — URGENCE VITALE</b><p>Perte de connaissance, convulsions, détresse respiratoire → SAMU immédiatement.</p><a class=\"btn brd\" style=\"margin-top:9px\" href=\"tel:15\">🚨 Appeler le 15 — SAMU</a></div><div class=\"arr\">▼</div>"
+  +"<div class=\"step\"><b>ÉTAPE 6 — TRAÇABILITÉ</b><p>Informer famille et direction. Ouvrir une fiche événement indésirable.</p><button class=\"btn bgh\" style=\"margin-top:9px\" data-cstab=\"visite\" data-vtab=\"trans\">Ouvrir fiche transmission</button></div>";
+}
+
+// ── QUALITE
+function viewQualite(){
+  const t=S.qualTab;
+  return`
+<h1 class="pg">Qualité & Sécurité</h1>
+<p class="sub">Signaux faibles, événements indésirables, indicateurs et audit HAS.</p>
+<div class="pills">
+  ${[["signaux","Signaux"],["ei","Évén. indés."],["indicateurs","Indicateurs"],["audit","Audit HAS"]].map(([k,l])=>"<div class=\"pill "+(t===k?"on":"")+"\" data-qtab=\""+k+"\">"+l+"</div>").join("")}
+</div>
+${t==="signaux"?qSignaux():t==="ei"?qEI():t==="indicateurs"?qIndicateurs():qAudit()}`;
+}
+
+function qSignaux(){
+  const open=S.signals.filter(s=>!s.closed);
+  return"<div class=\"card\"><h2 class=\"sh\">Déclarer un signal faible</h2>"
+  +"<div class=\"fl\"><label>Bénéficiaire concerné</label><select id=\"siBenef\"><option value=\"\">Sélectionner...</option>"+S.benef.map(b=>"<option value=\""+b.id+"\">"+esc(b.prenom||"")+" "+esc(b.nom||"")+"</option>").join("")+"</select></div>"
+  +"<div class=\"fl\"><label>Type de signal</label><select id=\"siType\"><option value=\"\">Sélectionner...</option>"+SIGNAL_TYPES.map(t=>"<option>"+t+"</option>").join("")+"</select></div>"
+  +"<div class=\"fl\"><label>Niveau de gravité</label><div class=\"seg s3\" id=\"siNiv\"><button class=\"\" data-val=\"1\">1 — Faible</button><button class=\"\" data-val=\"2\">2 — Modéré</button><button class=\"\" data-val=\"3\">3 — Élevé</button></div></div>"
+  +"<div class=\"fl\"><label>Description</label><textarea id=\"siDesc\" rows=\"2\" placeholder=\"Description du signal observé…\"></textarea></div>"
+  +"<div class=\"fl\"><label>Action engagée</label><textarea id=\"siAction\" rows=\"2\" placeholder=\"Mesures prises ou prévues…\"></textarea></div>"
+  +"<button class=\"btn bcc\" id=\"siSave\">Enregistrer le signal</button></div>"
+  +"<h2 class=\"sh\">Signaux ouverts ("+open.length+")</h2>"
+  +(open.length===0?"<div class=\"empty\"><b>Aucun signal actif</b>Bonne nouvelle !</div>":
+  open.slice().reverse().map(s=>{const b=S.benef.find(x=>x.id===s.benefId);return"<div class=\"sc s"+s.niveau+"\"><div class=\"rb\"><div><b>"+esc(s.type)+"</b><small>"+(b?esc(b.prenom||"")+" "+esc(b.nom||""):"Bénéficiaire non lié")+" · "+fdate(s.date)+"</small><small style=\"color:var(--ink2)\">"+esc(s.desc||"")+"</small></div><span class=\"badge "+(s.niveau===1?"byw2":s.niveau===2?"bor2":"brd2")+"\">N"+s.niveau+"</span></div><div class=\"row\" style=\"margin-top:8px;gap:6px\"><button class=\"btn bgh bsm\" data-closesig=\""+s.id+"\">✓ Clôturer</button></div></div>";}).join(""));
+}
+
+function qEI(){
+  const openEI=S.ei.filter(e=>!e.closed);
+  return"<div class=\"card\"><h2 class=\"sh\">Déclarer un événement indésirable</h2>"
+  +"<div class=\"fl\"><label>Bénéficiaire concerné</label><select id=\"eiBenef\"><option value=\"\">Sélectionner...</option>"+S.benef.map(b=>"<option value=\""+b.id+"\">"+esc(b.prenom||"")+" "+esc(b.nom||"")+"</option>").join("")+"</select></div>"
+  +"<div class=\"fl\"><label>Type d'événement</label><select id=\"eiType\"><option value=\"\">Sélectionner...</option>"+EI_TYPES.map(t=>"<option>"+t+"</option>").join("")+"</select></div>"
+  +"<div class=\"fl\"><label>Date et heure</label><input type=\"datetime-local\" id=\"eiDate\"></div>"
+  +"<div class=\"fl\"><label>Description factuelle</label><textarea id=\"eiDesc\" rows=\"3\" placeholder=\"Décrire les faits de manière objective…\"></textarea></div>"
+  +"<div class=\"fl\"><label>Mesures immédiates prises</label><textarea id=\"eiMesures\" rows=\"2\" placeholder=\"Actions entreprises…\"></textarea></div>"
+  +"<div class=\"fl\"><label>Gravité</label><div class=\"seg s3\" id=\"eiGrav\"><button data-val=\"1\">1 — Mineur</button><button data-val=\"2\">2 — Modéré</button><button data-val=\"3\">3 — Grave</button></div></div>"
+  +"<button class=\"btn bcc\" id=\"eiSave\">Enregistrer l'EI</button></div>"
+  +"<h2 class=\"sh\">EI en cours ("+openEI.length+")</h2>"
+  +(openEI.length===0?"<div class=\"empty\"><b>Aucun EI en cours</b></div>":
+  openEI.slice().reverse().map(e=>{const b=S.benef.find(x=>x.id===e.benefId);return"<div class=\"ei\"><div class=\"rb\"><div class=\"eit\">"+esc(e.type)+"</div><span class=\"badge "+(e.grav===3?"brd2":e.grav===2?"bor2":"byw2")+"\">Gravité "+e.grav+"</span></div><small>"+(b?esc(b.prenom||"")+" "+esc(b.nom||""):"—")+" · "+fdate(e.date)+"</small><p style=\"font-size:12px;margin-top:5px\">"+esc(e.desc||"")+"</p><button class=\"btn bgh bsm\" style=\"margin-top:8px\" data-closeei=\""+e.id+"\">✓ Clôturer</button></div>";}).join(""));
+}
+
+function qIndicateurs(){
+  const ivtTotal=S.ivtList.length;const benefTotal=S.benef.length;
+  return"<div class=\"card\"><h2 class=\"sh\">Indicateurs qualité</h2><table class=\"t\"><thead><tr><th>Indicateur</th><th>Cible</th><th>Statut</th></tr></thead><tbody>"
+  +INDIC.map(i=>"<tr><td>"+i.l+"</td><td>"+i.cible+"</td><td><span class=\"badge bgn2\">✓ Suivi</span></td></tr>").join("")
+  +"</tbody></table></div>"
+  +"<div class=\"kgrid\">"
+  +"<div class=\"kpi\"><div class=\"kv\">"+benefTotal+"</div><div class=\"kl\">Bénéficiaires</div></div>"
+  +"<div class=\"kpi\"><div class=\"kv\">"+ivtTotal+"</div><div class=\"kl\">Grilles IVT</div></div>"
+  +"<div class=\"kpi\"><div class=\"kv\">"+S.signals.length+"</div><div class=\"kl\">Signaux déclarés</div></div>"
+  +"<div class=\"kpi\"><div class=\"kv\">"+S.ei.length+"</div><div class=\"kl\">EI déclarés</div></div>"
+  +"</div>"
+  +"<div class=\"card\"><h2 class=\"sh\">Export des preuves HAS</h2><p style=\"font-size:12.5px;color:var(--ink2);margin-bottom:10px\">Générez un rapport de synthèse exportable pour votre auditeur.</p><button class=\"btn bcc\" id=\"exportHAS\">📄 Générer le rapport de synthèse</button></div>";
+}
+
+function qAudit(){
+  const done=AUDIT_QS.filter((_,i)=>S.audit[i]).length;
+  const pct=Math.round(done/AUDIT_QS.length*100);
+  return"<div class=\"card\"><div class=\"rb\" style=\"margin-bottom:10px\"><h2 class=\"sh\" style=\"margin:0\">Auto-évaluation HAS</h2><span class=\"badge bcc2\">"+done+"/"+AUDIT_QS.length+" — "+pct+"%</span></div>"
+  +"<div style=\"height:6px;background:var(--line);border-radius:99px;margin-bottom:14px\"><div style=\"height:100%;background:"+(pct>=80?"var(--gn)":pct>=50?"var(--yw)":"var(--rd)")+";border-radius:99px;width:"+pct+"%\"></div></div>"
+  +AUDIT_QS.map((q,i)=>"<div class=\"cr "+(S.audit[i]?"dn":"")+"\"><div class=\"cb "+(S.audit[i]?"ok":"")+"\" data-aud=\""+i+"\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13l4 4L19 7\"/></svg></div><span class=\"cl\">"+q+"</span></div>").join("")
+  +"</div>";
+}
+
+// ── PLUS
+function viewPlus(){
+  const t=S.plusTab||"tele";
+  return`
+<h1 class="pg">Plus</h1>
+<p class="sub">Télégestion, messages, contacts, paramètres et profil.</p>
+<div class="pills">
+  ${[["tele","Télégestion"],["messages","Messages"],["contacts","Contacts"],["profil","Profil"]].map(([k,l])=>"<div class=\"pill "+(t===k?"on":"")+"\" data-ptab=\""+k+"\">"+l+"</div>").join("")}
+</div>
+${t==="tele"?pTele():t==="messages"?pMessages():t==="contacts"?pContacts():pProfil()}`;
+}
+
+function pTele(){
+  const today=S.telegest.filter(t=>t.date===td());
+  const active=today.find(t=>!t.fin);
+  return"<div class=\"card\"><h2 class=\"sh\">Pointage du jour</h2>"
+  +(active?"<div class=\"abox agn\"><b>✅ En intervention depuis "+active.debut+"</b><p>"+esc(active.lieu||"Lieu non renseigné")+"</p></div><button class=\"btn brd\" id=\"pointSortie\">⏹️ Pointer la sortie</button>":
+  "<div class=\"fl\"><label>Lieu / bénéficiaire</label><select id=\"ptLieu\"><option value=\"\">Sélectionner...</option>"+S.benef.map(b=>"<option>"+esc(b.prenom||"")+" "+esc(b.nom||"")+"</option>").join("")+"</select></div><button class=\"btn bcc\" id=\"pointEntree\">▶️ Pointer l'entrée</button>")
+  +"</div>"
+  +"<div class=\"card\"><h2 class=\"sh\">Signature électronique</h2>"
+  +"<canvas id=\"sigpad\" width=\"400\" height=\"140\"></canvas>"
+  +"<div class=\"row\" style=\"margin-top:8px;gap:8px\"><button class=\"btn bgh bsm\" id=\"sigClear\">Effacer</button><button class=\"btn bcc bsm\" id=\"sigSave\">Valider la signature</button></div></div>"
+  +"<div class=\"card\"><h2 class=\"sh\">Journal d'interventions ("+today.length+")</h2>"
+  +(today.length===0?"<div class=\"empty\"><b>Aucune intervention aujourd'hui</b></div>":
+  today.slice().reverse().map(t=>"<div class=\"tcol\"><div class=\"tcn\">"+esc(t.lieu||"—")+"</div><small>"+t.debut+(t.fin?" → "+t.fin:" → en cours")+"</small><span class=\"tst\" style=\"background:"+(t.fin?"var(--gns)":"var(--yws)")+";color:"+(t.fin?"var(--gn)":"var(--yw)")+"\">"+(t.fin?"✓ Terminé":"● En cours")+"</span></div>").join(""))
+  +"</div>";
+}
+
+function pMessages(){
+  return"<h2 class=\"sh\">Modèles de messages</h2>"
+  +MESSAGES.map((m,i)=>"<div class=\"msg\"><div class=\"mh\"><b>"+esc(m.t)+"</b><button class=\"cpbtn\" data-cp=\""+i+"\">📋 Copier</button></div><div>"+esc(m.b)+"</div></div>").join("");
+}
+
+function pContacts(){
+  const c=S.contacts;
+  return"<div class=\"card\"><h2 class=\"sh\">Contacts de la cellule de crise</h2>"
+  +"<div class=\"fl\"><label>Coordinateur / responsable</label><input id=\"cCoord\" value=\""+esc(c.coord||"")+"\" placeholder=\"Numéro de téléphone\"></div>"
+  +"<div class=\"fl\"><label>Astreinte</label><input id=\"cAstr\" value=\""+esc(c.astreinte||"")+"\" placeholder=\"Numéro de téléphone\"></div>"
+  +"<div class=\"fl\"><label>Médecin référent</label><input id=\"cMed\" value=\""+esc(c.medecin||"")+"\" placeholder=\"Numéro de téléphone\"></div>"
+  +"<button class=\"btn bcc\" id=\"saveContacts\">Enregistrer les contacts</button></div>"
+  +( c.coord||c.astreinte||c.medecin?"<div class=\"card\"><h2 class=\"sh\">Appels rapides</h2>"
+  +(c.coord?"<a class=\"btn bcc\" style=\"margin-bottom:8px\" href=\"tel:"+esc(c.coord)+"\">📞 Coordinateur · "+esc(c.coord)+"</a>":"")
+  +(c.astreinte?"<a class=\"btn bgh\" style=\"margin-bottom:8px\" href=\"tel:"+esc(c.astreinte)+"\">📞 Astreinte · "+esc(c.astreinte)+"</a>":"")
+  +(c.medecin?"<a class=\"btn bout\" style=\"margin-bottom:8px\" href=\"tel:"+esc(c.medecin)+"\">📞 Médecin · "+esc(c.medecin)+"</a>":"")
+  +"<a class=\"btn brd\" href=\"tel:15\">🚨 SAMU — 15</a></div>":"");
+}
+
+function pProfil(){
+  const rl={admin:"Administrateur",responsable:"Responsable de secteur",auxiliaire:"Auxiliaire de vie",auditeur:"Auditeur HAS"};
+  return"<div class=\"card\"><h2 class=\"sh\">Profil actuel</h2><p style=\"font-size:13.5px;margin-bottom:12px\">Rôle : <b>"+( rl[S.role]||"—")+"</b></p><button class=\"btn bgh\" id=\"chgRole\" style=\"margin-bottom:8px\">Changer de profil</button><button class=\"btn bout\" id=\"resetAll\">Réinitialiser toutes les données</button></div>"
+  +"<div class=\"card\"><h2 class=\"sh\">À propos</h2><p style=\"font-size:12.5px;color:var(--ink2);line-height:1.5\">Cognitive Care — Plateforme SAAD<br>Plan Canicule HAS v2.0<br>Les données sont stockées localement sur cet appareil.</p></div>";
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  const m=document.getElementById("main");
+  const sc=m._sc||0;
+  if(S.tab==="home")       m.innerHTML=viewHome();
+  else if(S.tab==="benef") m.innerHTML=viewBenef();
+  else if(S.tab==="canicule") m.innerHTML=viewCanicule();
+  else if(S.tab==="qualite")  m.innerHTML=viewQualite();
+  else                        m.innerHTML=viewPlus();
+  document.querySelectorAll("#tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.tab===S.tab));
+  renderHeader();
+  attach();
+  m.scrollTop=sc;m._sc=0;
+  // Init sig pad si présent
+  const sp=document.getElementById("sigpad");
+  if(sp)initSig(sp);
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+function attach(){
+  const m=document.getElementById("main");
+  
+  // Navigation interne
+  m.querySelectorAll("[data-goto]").forEach(el=>el.addEventListener("click",()=>{
+    S.tab=el.dataset.goto;
+    if(el.dataset.cstab)S.caniculeTab=el.dataset.cstab;
+    if(el.dataset.vtab)S.vtab=el.dataset.vtab;
+    if(el.dataset.pstab)S.plusTab=el.dataset.pstab;
+    if(el.dataset.qtab)S.qualTab=el.dataset.qtab;
+    S.benefView=null;render();
+  }));
+
+  // Niveau vigilance
+  m.querySelectorAll("[data-sl]").forEach(el=>el.addEventListener("click",()=>{
+    S.level=parseInt(el.dataset.sl);ss("cc-level",S.level);
+    fsSet("settings","level",{value:S.level});renderHeader();m._sc=m.scrollTop;render();
+  }));
+
+  // Tabs
+  m.querySelectorAll("[data-cstab]").forEach(el=>el.addEventListener("click",()=>{
+    S.caniculeTab=el.dataset.cstab;if(el.dataset.vtab)S.vtab=el.dataset.vtab;render();
+  }));
+  m.querySelectorAll("[data-vtab]").forEach(el=>el.addEventListener("click",()=>{
+    S.vtab=el.dataset.vtab;render();
+  }));
+  m.querySelectorAll("[data-qtab]").forEach(el=>el.addEventListener("click",()=>{
+    S.qualTab=el.dataset.qtab;render();
+  }));
+  m.querySelectorAll("[data-ptab]").forEach(el=>el.addEventListener("click",()=>{
+    S.plusTab=el.dataset.ptab;render();
+  }));
+
+  // Bénéficiaires
+  const nb=document.getElementById("newBenef");
+  if(nb)nb.addEventListener("click",()=>{m.innerHTML=formBenef(null);attachBenefForm();});
+  m.querySelectorAll("[data-viewb]").forEach(el=>el.addEventListener("click",()=>{S.benefView=el.dataset.viewb;render();}));
+  m.querySelectorAll("[data-editivt]").forEach(el=>el.addEventListener("click",()=>{
+    const it=S.ivtList.find(i=>i.id===el.dataset.editivt);
+    if(it){S.ivtForm={...it,id:it.id};S.caniculeTab="ivt";window.scrollTo(0,0);render();}
+  }));
+  m.querySelectorAll("[data-delivt]").forEach(el=>el.addEventListener("click",e=>{
+    e.stopPropagation();S.ivtList=S.ivtList.filter(i=>i.id!==el.dataset.delivt);ss("cc-ivt",S.ivtList);toast("Supprimé");render();
+  }));
+  m.querySelectorAll("[data-editb]").forEach(el=>el.addEventListener("click",()=>{
+    const b=S.benef.find(x=>x.id===el.dataset.bid);if(b){m.innerHTML=formBenef(b);attachBenefForm();}
+  }));
+  const editB=document.getElementById("editBenef");
+  if(editB)editB.addEventListener("click",()=>{const b=S.benef.find(x=>x.id===editB.dataset.bid);if(b){m.innerHTML=formBenef(b);attachBenefForm();}});
+
+  // Checklist visite
+  m.querySelectorAll("[data-chk]").forEach(el=>el.addEventListener("click",()=>{
+    const id=el.dataset.chk;
+    S.visit.cl=S.visit.cl||{};
+    if(S.visit.cl[id])delete S.visit.cl[id];else S.visit.cl[id]=true;
+    saveV();m._sc=m.scrollTop;render();
+  }));
+  const obsEl=document.getElementById("obsGen");
+  if(obsEl)obsEl.addEventListener("input",e=>{S.visit.obs=e.target.value;});
+  const saveObs=document.getElementById("saveObs");
+  if(saveObs)saveObs.addEventListener("click",()=>{saveV();toast("Enregistré");});
+  const pz=document.getElementById("pz");const pzI=document.getElementById("pzInput");
+  if(pz&&pzI){pz.addEventListener("click",()=>pzI.click());pzI.addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{S.visit.photo=ev.target.result;saveV();m._sc=m.scrollTop;render();};r.readAsDataURL(f);});}
+
+  // Surveillance
+  m.querySelectorAll("[data-sk]").forEach(g=>{g.querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{
+    S.visit.surv=S.visit.surv||{};S.visit.surv[g.dataset.sk]=parseInt(btn.dataset.val);saveV();m._sc=m.scrollTop;render();
+  }));});
+
+  // Hydratation
+  const hAdd=document.getElementById("hydAdd");
+  if(hAdd)hAdd.addEventListener("click",()=>{
+    const h=document.getElementById("hH").value.trim()||hhmm();
+    const b=document.getElementById("hB").value;
+    const q=document.getElementById("hQ").value||"0";
+    const o=document.getElementById("hO").value.trim();
+    S.visit.hyd=S.visit.hyd||[];S.visit.hyd.push({id:uid(),h,b,q,o});saveV();toast("Prise ajoutée");render();
+  });
+  m.querySelectorAll("[data-dh]").forEach(el=>el.addEventListener("click",()=>{
+    S.visit.hyd=S.visit.hyd.filter(r=>r.id!==el.dataset.dh);saveV();render();
+  }));
+
+  // Transmission
+  const trAdd=document.getElementById("trAdd");
+  if(trAdd)trAdd.addEventListener("click",()=>{
+    const b=document.getElementById("tB").value.trim();
+    const o=document.getElementById("tO").value.trim();
+    const a=document.getElementById("tA").value.trim();
+    const d=document.getElementById("tD").value.trim();
+    if(!o){toast("Décrivez l'observation");return;}
+    S.visit.trans=S.visit.trans||[];S.visit.trans.push({id:uid(),h:hhmm(),b,o,a,d});saveV();toast("Enregistrée");render();
+  });
+  m.querySelectorAll("[data-dt]").forEach(el=>el.addEventListener("click",()=>{
+    S.visit.trans=S.visit.trans.filter(r=>r.id!==el.dataset.dt);saveV();render();
+  }));
+
+  // IVT form
+  const ivtN=document.getElementById("ivtName");
+  if(ivtN)ivtN.addEventListener("input",e=>{S.ivtForm.name=e.target.value;});
+  m.querySelectorAll("[data-ck]").forEach(g=>{g.querySelectorAll("button").forEach(btn=>btn.addEventListener("click",()=>{
+    S.ivtForm[g.dataset.ck]=parseInt(btn.dataset.val);m._sc=m.scrollTop;render();
+  }));});
+  const ivtSv=document.getElementById("ivtSave");
+  if(ivtSv)ivtSv.addEventListener("click",()=>{
+    const f=S.ivtForm;
+    const benSel=document.getElementById("ivtBenef");
+    if(benSel)f.benefId=benSel.value||null;
+    if(f.id){const idx=S.ivtList.findIndex(i=>i.id===f.id);if(idx>-1)S.ivtList[idx]={...f};}
+    else S.ivtList.push({...f,id:uid()});
+    const lastIvt=S.ivtList[S.ivtList.length-1];
+    if(lastIvt){fsSet("ivt",lastIvt.id,lastIvt);}
+    ss("cc-ivt",S.ivtList);S.ivtForm={id:null,name:"",age:0,aut:0,pat:0,iso:0,log:0};toast("Enregistré");render();
+  });
+  const ivtCa=document.getElementById("ivtCancel");
+  if(ivtCa)ivtCa.addEventListener("click",()=>{S.ivtForm={id:null,name:"",age:0,aut:0,pat:0,iso:0,log:0};render();});
+
+  // Signaux
+  let siNiv=1;
+  m.querySelectorAll("#siNiv button").forEach(btn=>{btn.addEventListener("click",()=>{
+    siNiv=parseInt(btn.dataset.val);
+    m.querySelectorAll("#siNiv button").forEach((b,i)=>{b.className=b.dataset.val==siNiv?"a"+(siNiv-1):"";});
+  });});
+  const siSave=document.getElementById("siSave");
+  if(siSave)siSave.addEventListener("click",()=>{
+    const t=document.getElementById("siType").value;
+    const d=document.getElementById("siDesc").value.trim();
+    const a=document.getElementById("siAction").value.trim();
+    const bid=document.getElementById("siBenef").value;
+    if(!t){toast("Sélectionnez un type de signal");return;}
+    S.signals.push({id:uid(),date:td(),type:t,niveau:siNiv,desc:d,action:a,benefId:bid||null,closed:false});
+    const lastSig=S.signals[S.signals.length-1];
+    if(lastSig){fsSet("signals",lastSig.id,lastSig);}
+    ss("cc-signals",S.signals);toast("Signal enregistré");renderHeader();render();
+  });
+  m.querySelectorAll("[data-closesig]").forEach(el=>el.addEventListener("click",()=>{
+    const s=S.signals.find(x=>x.id===el.dataset.closesig);if(s)s.closed=true;const closedSig=S.signals.find(x=>x.id===el.dataset.closesig);
+    if(closedSig){fsSet("signals",closedSig.id,closedSig);}
+    ss("cc-signals",S.signals);toast("Signal clôturé");render();
+  }));
+
+  // EI
+  let eiGrav=1;
+  m.querySelectorAll("#eiGrav button").forEach(btn=>{btn.addEventListener("click",()=>{
+    eiGrav=parseInt(btn.dataset.val);
+    m.querySelectorAll("#eiGrav button").forEach((b,i)=>{b.className=b.dataset.val==eiGrav?"a"+(eiGrav-1):"";});
+  });});
+  const eiSave=document.getElementById("eiSave");
+  if(eiSave)eiSave.addEventListener("click",()=>{
+    const t=document.getElementById("eiType").value;
+    const d=document.getElementById("eiDesc").value.trim();
+    const ms=document.getElementById("eiMesures").value.trim();
+    const dt=document.getElementById("eiDate").value;
+    const bid=document.getElementById("eiBenef").value;
+    if(!t){toast("Sélectionnez un type d'EI");return;}
+    S.ei.push({id:uid(),date:dt||td(),type:t,grav:eiGrav,desc:d,mesures:ms,benefId:bid||null,closed:false});
+    const lastEi=S.ei[S.ei.length-1];
+    if(lastEi){fsSet("ei",lastEi.id,lastEi);}
+    ss("cc-ei",S.ei);toast("EI enregistré");renderHeader();render();
+  });
+  m.querySelectorAll("[data-closeei]").forEach(el=>el.addEventListener("click",()=>{
+    const e=S.ei.find(x=>x.id===el.dataset.closeei);if(e)e.closed=true;ss("cc-ei",S.ei);toast("EI clôturé");render();
+  }));
+
+  // Audit
+  m.querySelectorAll("[data-aud]").forEach(el=>el.addEventListener("click",()=>{
+    const i=el.dataset.aud;S.audit[i]=!S.audit[i];ss("cc-audit",S.audit);fsSet("settings","audit",S.audit);render();
+  }));
+
+  // Télégestion
+  const pE=document.getElementById("pointEntree");
+  if(pE)pE.addEventListener("click",()=>{
+    const lieu=document.getElementById("ptLieu").value;
+    S.telegest.push({id:uid(),date:td(),debut:hhmm(),fin:null,lieu,sig:null});
+    ss("cc-telegest",S.telegest);
+    const activeTele=S.telegest.find(t=>t.date===td()&&!t.fin);
+    if(activeTele){fsSet("telegest",activeTele.id,activeTele);}
+    toast("Pointage d'entrée enregistré");render();
+  });
+  const pS=document.getElementById("pointSortie");
+  if(pS)pS.addEventListener("click",()=>{
+    const active=S.telegest.find(t=>t.date===td()&&!t.fin);
+    if(active){active.fin=hhmm();ss("cc-telegest",S.telegest);
+    if(active){fsSet("telegest",active.id,active);}
+    toast("Pointage de sortie enregistré");render();}
+  });
+
+  // Signature
+  const sigSave=document.getElementById("sigSave");
+  if(sigSave)sigSave.addEventListener("click",()=>{
+    const sp=document.getElementById("sigpad");
+    if(sp&&S.sigPoints&&S.sigPoints.length>5){
+      const active=S.telegest.find(t=>t.date===td()&&!t.fin)||S.telegest.slice().reverse().find(t=>t.date===td());
+      if(active){active.sig=sp.toDataURL();ss("cc-telegest",S.telegest);}
+      toast("Signature enregistrée");
+    }else toast("Veuillez signer dans le cadre");
+  });
+  const sigCl=document.getElementById("sigClear");
+  if(sigCl)sigCl.addEventListener("click",()=>{
+    const sp=document.getElementById("sigpad");
+    if(sp&&S.sigCtx){S.sigCtx.clearRect(0,0,sp.width,sp.height);sp.classList.remove("signed");S.sigPoints=[];}
+  });
+
+  // Messages
+  m.querySelectorAll("[data-cp]").forEach(el=>el.addEventListener("click",()=>copyText(MESSAGES[parseInt(el.dataset.cp)].b)));
+
+  // Contacts
+  const sCont=document.getElementById("saveContacts");
+  if(sCont)sCont.addEventListener("click",()=>{
+    S.contacts={coord:document.getElementById("cCoord").value.trim(),astreinte:document.getElementById("cAstr").value.trim(),medecin:document.getElementById("cMed").value.trim()};
+    ss("cc-contacts",S.contacts);fsSet("settings","contacts",S.contacts);toast("Contacts enregistrés");render();
+  });
+
+  // Profil
+  const chg=document.getElementById("chgRole");
+  if(chg)chg.addEventListener("click",()=>{logoutFirebase();});
+  const rst=document.getElementById("resetAll");
+  if(rst)rst.addEventListener("click",()=>{
+    if(!confirm("Réinitialiser toutes les données Cognitive Care ?"))return;
+    ["cc-role","cc-level","cc-benef","cc-ivt","cc-signals","cc-ei","cc-telegest","cc-audit","cc-contacts","cc-visit"].forEach(k=>localStorage.removeItem(k));
+    location.reload();
+  });
+
+  // Export HAS
+  const exp=document.getElementById("exportHAS");
+  if(exp)exp.addEventListener("click",()=>{
+    const rapport=`RAPPORT DE SYNTHÈSE — COGNITIVE CARE
+Date : ${new Date().toLocaleDateString("fr-FR")}
+Niveau de vigilance canicule : N${S.level} — ${LN[S.level]}
+
+BÉNÉFICIAIRES : ${S.benef.length}
+Grilles IVT renseignées : ${S.ivtList.length}
+Bénéficiaires à IVT élevé/majeur : ${S.ivtList.filter(i=>ivtSc(i)>=6).length}
+
+SIGNAUX FAIBLES : ${S.signals.length} déclarés (${S.signals.filter(s=>!s.closed).length} ouverts)
+ÉVÉNEMENTS INDÉSIRABLES : ${S.ei.length} déclarés (${S.ei.filter(e=>!e.closed).length} ouverts)
+
+AUDIT HAS : ${AUDIT_QS.filter((_,i)=>S.audit[i]).length}/${AUDIT_QS.length} critères validés
+
+Généré par Cognitive Care — Plateforme SAAD HAS`;
+    const blob=new Blob([rapport],{type:"text/plain;charset=utf-8"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="rapport_has_"+td()+".txt";a.click();
+    toast("Rapport généré !");
+  });
+}
+
+// ── Bénéficiaire form events
+function attachBenefForm(){
+  const m=document.getElementById("main");
+  let selectedPatho=[];
+  m.querySelectorAll("[data-patho]").forEach(el=>el.addEventListener("click",()=>{
+    const p=el.dataset.patho;
+    if(selectedPatho.includes(p)){selectedPatho=selectedPatho.filter(x=>x!==p);el.classList.remove("on");}
+    else{selectedPatho.push(p);el.classList.add("on");}
+  }));
+  const savB=document.getElementById("saveBenef");
+  if(savB)savB.addEventListener("click",()=>{
+    const bid=savB.dataset.bid;
+    const obj={
+      prenom:document.getElementById("bPrenom").value.trim(),
+      nom:document.getElementById("bNom").value.trim(),
+      ddn:document.getElementById("bDdn").value,
+      age:document.getElementById("bAge").value,
+      adresse:document.getElementById("bAdresse").value.trim(),
+      tel:document.getElementById("bTel").value.trim(),
+      confiance:document.getElementById("bConfiance").value.trim(),
+      gir:document.getElementById("bGir").value,
+      apa:document.getElementById("bApa").value,
+      pathologies:selectedPatho,
+      traitements:document.getElementById("bTraite").value.trim(),
+      projet:document.getElementById("bProjet").value.trim(),
+      intervenants:document.getElementById("bInter").value.trim(),
+      isolement:document.getElementById("bIsol").value,
+    };
+    if(!obj.nom&&!obj.prenom){toast("Renseignez au moins un nom");return;}
+    if(bid){const idx=S.benef.findIndex(b=>b.id===bid);if(idx>-1)S.benef[idx]={...S.benef[idx],...obj};}
+    else S.benef.push({...obj,id:uid()});
+    // Sauvegarder dans Firestore
+    const lastBenef=S.benef[S.benef.length-1]||S.benef.find(b=>b.id===bid);
+    if(lastBenef){fsSet("benef",lastBenef.id,lastBenef);}
+    ss("cc-benef",S.benef);S.benefView=null;toast("Bénéficiaire enregistré");S.tab="benef";render();
+  });
+  const canB=document.getElementById("cancelBenef");
+  if(canB)canB.addEventListener("click",()=>{S.benefView=null;S.tab="benef";render();});
+}
+
+// ── Signature pad
+function initSig(canvas){
+  const ctx=canvas.getContext("2d");
+  S.sigCtx=ctx;S.sigPoints=[];S.sigDrawing=false;
+  canvas.width=canvas.offsetWidth||360;
+  ctx.strokeStyle="#1A4DB8";ctx.lineWidth=2.5;ctx.lineCap="round";ctx.lineJoin="round";
+  const pos=(e)=>{const r=canvas.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};};
+  canvas.addEventListener("mousedown",e=>{S.sigDrawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);S.sigPoints.push(p);});
+  canvas.addEventListener("mousemove",e=>{if(!S.sigDrawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();S.sigPoints.push(p);});
+  canvas.addEventListener("mouseup",()=>{S.sigDrawing=false;canvas.classList.add("signed");});
+  canvas.addEventListener("touchstart",e=>{e.preventDefault();S.sigDrawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);S.sigPoints.push(p);},{passive:false});
+  canvas.addEventListener("touchmove",e=>{e.preventDefault();if(!S.sigDrawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();S.sigPoints.push(p);},{passive:false});
+  canvas.addEventListener("touchend",()=>{S.sigDrawing=false;canvas.classList.add("signed");});
+}
+
+// ── Auth Firebase
+function showAuth(){
+  document.getElementById("shell").style.display="none";
+  document.getElementById("auth-screen").classList.add("show");
+}
+function hideAuth(){
+  document.getElementById("auth-screen").classList.remove("show");
+  document.getElementById("shell").style.display="flex";
+}
+function showAuthError(id, msg){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.style.display="block";
+  setTimeout(()=>el.style.display="none",4000);
+}
+function translateFirebaseError(code){
+  const map={
+    "auth/user-not-found":"Aucun compte trouvé avec cet email.",
+    "auth/wrong-password":"Mot de passe incorrect.",
+    "auth/invalid-email":"Adresse email invalide.",
+    "auth/email-already-in-use":"Cet email est déjà utilisé.",
+    "auth/weak-password":"Le mot de passe doit faire au moins 6 caractères.",
+    "auth/too-many-requests":"Trop de tentatives. Réessayez dans quelques minutes.",
+    "auth/invalid-credential":"Email ou mot de passe incorrect.",
+  };
+  return map[code]||"Une erreur est survenue. Réessayez.";
+}
+
+// Toggle login/register
+document.getElementById("btn-show-register").addEventListener("click",()=>{
+  document.getElementById("login-form").style.display="none";
+  document.getElementById("register-form").style.display="flex";
+});
+document.getElementById("btn-show-login").addEventListener("click",()=>{
+  document.getElementById("register-form").style.display="none";
+  document.getElementById("login-form").style.display="flex";
+});
+
+// Connexion
+document.getElementById("btn-login").addEventListener("click",async()=>{
+  const email=document.getElementById("auth-email").value.trim();
+  const pwd=document.getElementById("auth-pwd").value;
+  if(!email||!pwd){showAuthError("auth-error","Remplissez tous les champs.");return;}
+  const btn=document.getElementById("btn-login");
+  btn.textContent="Connexion...";btn.disabled=true;
+  try{
+    await window._auth.signInWithEmailAndPassword(email,pwd);
+    // onAuthStateChanged prendra le relais
+  }catch(e){
+    showAuthError("auth-error",translateFirebaseError(e.code));
+    btn.textContent="Se connecter";btn.disabled=false;
+  }
+});
+
+// Inscription
+document.getElementById("btn-register").addEventListener("click",async()=>{
+  const email=document.getElementById("reg-email").value.trim();
+  const pwd=document.getElementById("reg-pwd").value;
+  const role=document.getElementById("reg-role").value;
+  if(!email||!pwd){showAuthError("reg-error","Remplissez tous les champs.");return;}
+  const btn=document.getElementById("btn-register");
+  btn.textContent="Création...";btn.disabled=true;
+  try{
+    const cred=await window._auth.createUserWithEmailAndPassword(email,pwd);
+    // Sauvegarder le rôle dans localStorage (lié à l'uid)
+    ss("cc-role-"+cred.user.uid, role);
+    S.role=role;
+    // onAuthStateChanged prendra le relais
+  }catch(e){
+    showAuthError("reg-error",translateFirebaseError(e.code));
+    btn.textContent="Créer mon compte";btn.disabled=false;
+  }
+});
+
+// Déconnexion (dans le profil)
+function logoutFirebase(){
+  window._auth.signOut().then(()=>{
+    S.role=null;showAuth();
+  });
+}
+
+// Observer l'état de connexion Firebase
+window._auth.onAuthStateChanged(async user=>{
+  if(user){
+    const savedRole=sg("cc-role-"+user.uid, null);
+    if(savedRole){S.role=savedRole;}
+    else if(!S.role){S.role="auxiliaire";}
+    ss("cc-role",S.role);
+    // Charger les données depuis Firestore
+    await loadAll();
+    hideAuth();renderHeader();render();
+  } else {
+    showAuth();
+  }
+});
+document.getElementById("tabbar").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-tab]");if(!btn)return;S.tab=btn.dataset.tab;S.benefView=null;render();
+});
+
+// ── Boot
+// Boot géré par onAuthStateChanged — le splash reste jusqu'à la connexion
+setTimeout(()=>{
+  document.getElementById("splash").classList.add("out");
+  setTimeout(()=>{try{document.getElementById("splash").remove();}catch(e){}},600);
+},1800);
+
+if("serviceWorker"in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
